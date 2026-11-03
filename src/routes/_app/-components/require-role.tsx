@@ -7,7 +7,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty.tsx";
-import type { Role } from "@/convex/shared/roles.ts";
+import type { Role } from "@/shared/roles.ts";
 import { useMe } from "@/hooks/use-me.ts";
 
 /** UI gate only; every backend function re-checks the role. */

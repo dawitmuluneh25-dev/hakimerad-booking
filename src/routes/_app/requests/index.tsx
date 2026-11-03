@@ -1,5 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { usePaginatedQuery } from "convex/react";
+import { api, usePaginatedQuery } from "@/lib/api.ts";
 import { format } from "date-fns";
 import { ChevronRightIcon, ClipboardListIcon } from "lucide-react";
 import AppPage from "@/components/app-page.tsx";
@@ -7,8 +7,7 @@ import ReferralStatusBadge from "@/components/referral-status-badge.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty.tsx";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
-import { api } from "@/convex/_generated/api.js";
-import { PROCEDURE_LABELS } from "@/convex/shared/referrals.ts";
+import { PROCEDURE_LABELS } from "@/shared/referrals.ts";
 import { useMe } from "@/hooks/use-me.ts";
 import RequireRole from "../-components/require-role.tsx";
 import ProcedureChooser from "./-components/procedure-chooser.tsx";

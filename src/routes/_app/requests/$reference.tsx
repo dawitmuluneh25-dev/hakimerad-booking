@@ -1,15 +1,18 @@
 import { useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { useConvexAuth, useQuery } from "convex/react";
+import { api, useAuthStatus, useMutation, useQuery } from "@/lib/api.ts";
 import { format } from "date-fns";
+import { toast } from "sonner";
 import { ArrowLeftIcon, CheckCircle2Icon, DownloadIcon, FileTextIcon, FileSearchIcon, PaperclipIcon } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea.tsx";
+import { errorMessage } from "@/lib/errors.ts";
+import { DetailCard, Row, Timeline, formatWhen } from "../-components/record-cards.tsx";
 import { z } from "zod";
 import AppPage from "@/components/app-page.tsx";
 import ReferralStatusBadge from "@/components/referral-status-badge.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty.tsx";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
-import { api } from "@/convex/_generated/api.js";
 import {
   DOCUMENT_KIND_LABELS,
   MODALITY_LABELS,
@@ -18,7 +21,7 @@ import {
   SEX_LABELS,
   URGENCY_LABELS,
   YES_NO_UNKNOWN_LABELS,
-} from "@/convex/shared/referrals.ts";
+} from "@/shared/referrals.ts";
 import { formatBytes } from "./-lib/format.ts";
 import { AddDocumentsDialog, WithdrawDialog } from "./-components/request-actions.tsx";
 
@@ -31,7 +34,7 @@ export const Route = createFileRoute("/_app/requests/$reference")({
 function RequestDetailPage() {
   const { reference } = Route.useParams();
   const { submitted } = Route.useSearch();
-  const { isAuthenticated } = useConvexAuth();
+  const { isAuthenticated } = useAuthStatus();
   const referral = useQuery(api.referrals.getByReference, isAuthenticated ? { reference } : "skip");
   const [addOpen, setAddOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
@@ -180,6 +183,46 @@ function RequestDetailPage() {
             </ul>
           )}
         </DetailCard>
+
+        {referral.appointment ? (
+          <DetailCard title="Appointment">
+            <Row label="Date and time" value={formatWhen(referral.appointment.startsAt)} />
+            <Row label="Status" value={referral.appointment.status.replaceAll("_", " ")} />
+            <Row label="Room" value={referral.appointment.roomName ?? undefined} />
+            <p className="text-sm text-muted-foreground">
+              Bring the documents your care team asked for. If you cannot attend, contact HakimeRAD as early as
+              possible so the slot can be offered to another patient.
+            </p>
+          </DetailCard>
+        ) : null}
+
+        {referral.preparation ? (
+          <DetailCard title="Preparation instructions from your care team">
+            <p className="whitespace-pre-line rounded-lg border bg-muted/30 p-3 text-sm">
+              {referral.preparation.instructions}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Issued {formatWhen(referral.preparation.issuedAt)} by {referral.preparation.issuedBy}
+            </p>
+            {referral.preparation.acknowledgedAt ? (
+              <p className="text-sm text-emerald-700 dark:text-emerald-400">
+                You confirmed these instructions on {formatWhen(referral.preparation.acknowledgedAt)}.
+              </p>
+            ) : (
+              <AcknowledgePreparation referralId={referral._id} />
+            )}
+          </DetailCard>
+        ) : null}
+
+        <InfoRequestThread
+          referralId={referral._id}
+          status={referral.status}
+          notes={referral.notes ?? []}
+        />
+
+        <DetailCard title="Status history">
+          <Timeline events={referral.events ?? []} />
+        </DetailCard>
       </div>
 
       <AddDocumentsDialog referralId={referral._id} existingCount={referral.documents.length} open={addOpen} onOpenChange={setAddOpen} />
@@ -188,21 +231,89 @@ function RequestDetailPage() {
   );
 }
 
-function DetailCard({ title, children }: { title: string; children: React.ReactNode }) {
+function AcknowledgePreparation({ referralId }: { referralId: string }) {
+  const acknowledge = useMutation(api.care.acknowledgePreparation);
+  const [busy, setBusy] = useState(false);
   return (
-    <section className="rounded-xl border bg-background p-5">
-      <h2 className="pb-4 font-semibold">{title}</h2>
-      <div className="space-y-3">{children}</div>
-    </section>
+    <Button
+      size="sm"
+      disabled={busy}
+      onClick={async () => {
+        setBusy(true);
+        try {
+          await acknowledge({ referralId });
+          toast.success("Thank you. Your team can see you have read the instructions.");
+        } catch (error) {
+          toast.error(errorMessage(error, "Could not record your confirmation."));
+        } finally {
+          setBusy(false);
+        }
+      }}
+    >
+      <CheckCircle2Icon />
+      I have read these instructions
+    </Button>
   );
 }
 
-function Row({ label, value }: { label: string; value: string | undefined }) {
-  if (!value) return null;
+function InfoRequestThread({
+  referralId,
+  status,
+  notes,
+}: {
+  referralId: string;
+  status: string;
+  notes: Array<{ _id: string; body: string; author: string; at: string }>;
+}) {
+  const respond = useMutation(api.reviews.respondToInfo);
+  const [reply, setReply] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  if (notes.length === 0 && status !== "info_requested") return null;
+
   return (
-    <dl className="grid gap-1 text-sm sm:grid-cols-[10rem_1fr] sm:gap-4">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className="break-words whitespace-pre-line">{value}</dd>
-    </dl>
+    <DetailCard title="Messages about this request">
+      <ul className="space-y-2">
+        {notes.map((note) => (
+          <li key={note._id} className="rounded-lg border p-3 text-sm">
+            <p className="whitespace-pre-line">{note.body}</p>
+            <p className="pt-1 text-xs text-muted-foreground">
+              {formatWhen(note.at)} · {note.author}
+            </p>
+          </li>
+        ))}
+      </ul>
+      {status === "info_requested" ? (
+        <div className="space-y-2 border-t pt-3">
+          <p className="text-sm">
+            The clinical team asked for more information. Reply here and the request goes back into review.
+          </p>
+          <Textarea
+            value={reply}
+            onChange={(event) => setReply(event.target.value)}
+            rows={3}
+            placeholder="Add the information they asked for."
+          />
+          <Button
+            size="sm"
+            disabled={busy || reply.trim().length < 2}
+            onClick={async () => {
+              setBusy(true);
+              try {
+                await respond({ referralId, body: reply });
+                setReply("");
+                toast.success("Your reply was sent to the clinical team.");
+              } catch (error) {
+                toast.error(errorMessage(error, "Could not send your reply."));
+              } finally {
+                setBusy(false);
+              }
+            }}
+          >
+            Send reply
+          </Button>
+        </div>
+      ) : null}
+    </DetailCard>
   );
 }

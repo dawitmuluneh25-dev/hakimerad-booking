@@ -4,6 +4,8 @@ description: "Read FIRST before doing any work on the HakimeRAD IR Booking app: 
 ---
 # HakimeRAD IR Booking: builder hand-off
 
+> **Status (local build).** Milestones 1–10 of the original initiative are now implemented in this repository on a fully self-contained stack: TanStack Start server functions, `node:sqlite`, local disk storage and `openid-client` sessions. The infrastructure sections below still describe the original Convex/Hercules/Cloudflare build and are kept only as history — apply the **product rules** in §2, not those infrastructure choices. What each remaining milestone became is in [ROADMAP-PLAN.md](ROADMAP-PLAN.md); the current stack is summarised in [../README.md](../README.md).
+
 You are continuing an in-progress build. Read this whole file before editing anything. Then read the initiative (`initiative_read initiative-1` with `milestoneExpand: true`) because milestone notes may be newer than this file.
 
 ## 1. What the app is

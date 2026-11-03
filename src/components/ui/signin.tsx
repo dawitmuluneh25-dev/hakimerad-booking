@@ -20,7 +20,7 @@ export type SignInButtonProps = Omit<
     loadingText?: string;
   };
 
-/** Renders Sign In / Sign Out from the Hercules session (`useAuth()`); do not wrap in `<Unauthenticated>` / `<Authenticated>` from `convex/react`. */
+/** Renders Sign In / Sign Out from the local OIDC session (`useAuth()`). */
 export const SignInButton = forwardRef<HTMLButtonElement, SignInButtonProps>(
   (
     {

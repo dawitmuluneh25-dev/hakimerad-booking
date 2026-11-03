@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useMutation, usePaginatedQuery } from "convex/react";
+import { api, useMutation, usePaginatedQuery } from "@/lib/api.ts";
 import { formatDistanceToNow } from "date-fns";
 import { BadgeCheckIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -15,20 +15,31 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog.tsx";
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty.tsx";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty.tsx";
 import { Label } from "@/components/ui/label.tsx";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
 import { Spinner } from "@/components/ui/spinner.tsx";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs.tsx";
 import { Textarea } from "@/components/ui/textarea.tsx";
-import { api } from "@/convex/_generated/api.js";
-import type { Id } from "@/convex/_generated/dataModel";
-import { PHYSICIAN_STATUSES, PHYSICIAN_STATUS_LABELS, type PhysicianStatus } from "@/convex/shared/roles.ts";
+import type { Id } from "@/lib/ids.ts";
+import {
+  PHYSICIAN_STATUSES,
+  PHYSICIAN_STATUS_LABELS,
+  type PhysicianStatus,
+} from "@/shared/roles.ts";
 import { errorMessage } from "@/lib/errors.ts";
 import RequireRole from "../-components/require-role.tsx";
 
 export const Route = createFileRoute("/_app/admin/physicians")({
-  head: () => ({ meta: [{ title: "Verify physicians | HakimeRAD IR Booking" }] }),
+  head: () => ({
+    meta: [{ title: "Verify physicians | HakimeRAD IR Booking" }],
+  }),
   component: () => (
     <RequireRole roles={["admin"]}>
       <PhysiciansPage />
@@ -37,7 +48,11 @@ export const Route = createFileRoute("/_app/admin/physicians")({
 });
 
 type Decision = "verified" | "rejected" | "suspended";
-type Pending = { profileId: Id<"physicianProfiles">; name: string; decision: Decision } | null;
+type Pending = {
+  profileId: Id<"physicianProfiles">;
+  name: string;
+  decision: Decision;
+} | null;
 
 const DECISION_COPY: Record<Decision, { title: string; button: string }> = {
   verified: { title: "Verify physician", button: "Verify" },
@@ -48,15 +63,25 @@ const DECISION_COPY: Record<Decision, { title: string; button: string }> = {
 function PhysiciansPage() {
   const [status, setStatus] = useState<PhysicianStatus>("pending");
   const [pending, setPending] = useState<Pending>(null);
-  const { results, status: loadStatus, loadMore } = usePaginatedQuery(
+  const {
+    results,
+    status: loadStatus,
+    loadMore,
+  } = usePaginatedQuery(
     api.admin.accounts.listPhysicians,
     { status },
     { initialNumItems: 25 },
   );
 
   return (
-    <AppPage title="Verify physicians" description="Check registration details before granting referral access.">
-      <Tabs value={status} onValueChange={(value: PhysicianStatus) => setStatus(value)}>
+    <AppPage
+      title="Verify physicians"
+      description="Check registration details before granting referral access."
+    >
+      <Tabs
+        value={status}
+        onValueChange={(value: PhysicianStatus) => setStatus(value)}
+      >
         <TabsList className="mb-6 flex-wrap">
           {PHYSICIAN_STATUSES.map((s) => (
             <TabsTrigger key={s} value={s} className="cursor-pointer">
@@ -79,7 +104,10 @@ function PhysiciansPage() {
               <BadgeCheckIcon />
             </EmptyMedia>
             <EmptyTitle>Nothing here</EmptyTitle>
-            <EmptyDescription>No physician profiles are {PHYSICIAN_STATUS_LABELS[status].toLowerCase()}.</EmptyDescription>
+            <EmptyDescription>
+              No physician profiles are{" "}
+              {PHYSICIAN_STATUS_LABELS[status].toLowerCase()}.
+            </EmptyDescription>
           </EmptyHeader>
         </Empty>
       ) : (
@@ -96,39 +124,85 @@ function PhysiciansPage() {
                     {p.email} {"·"} {p.phone}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Submitted {formatDistanceToNow(new Date(p.submittedAt), { addSuffix: true })}
+                    Submitted{" "}
+                    {formatDistanceToNow(new Date(p.submittedAt), {
+                      addSuffix: true,
+                    })}
                   </p>
                 </div>
                 <div className="flex shrink-0 flex-wrap gap-2">
                   {p.status !== "verified" && p.status !== "suspended" ? (
-                    <Button size="sm" onClick={() => setPending({ profileId: p._id, name: p.fullName, decision: "verified" })}>
+                    <Button
+                      size="sm"
+                      onClick={() =>
+                        setPending({
+                          profileId: p._id,
+                          name: p.fullName,
+                          decision: "verified",
+                        })
+                      }
+                    >
                       Verify
                     </Button>
                   ) : null}
                   {p.status === "pending" ? (
-                    <Button size="sm" variant="secondary" onClick={() => setPending({ profileId: p._id, name: p.fullName, decision: "rejected" })}>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() =>
+                        setPending({
+                          profileId: p._id,
+                          name: p.fullName,
+                          decision: "rejected",
+                        })
+                      }
+                    >
                       Decline
                     </Button>
                   ) : null}
                   {p.status === "verified" ? (
-                    <Button size="sm" variant="destructive" onClick={() => setPending({ profileId: p._id, name: p.fullName, decision: "suspended" })}>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() =>
+                        setPending({
+                          profileId: p._id,
+                          name: p.fullName,
+                          decision: "suspended",
+                        })
+                      }
+                    >
                       Suspend
                     </Button>
                   ) : null}
                   {p.status === "suspended" ? (
-                    <Button size="sm" onClick={() => setPending({ profileId: p._id, name: p.fullName, decision: "verified" })}>
+                    <Button
+                      size="sm"
+                      onClick={() =>
+                        setPending({
+                          profileId: p._id,
+                          name: p.fullName,
+                          decision: "verified",
+                        })
+                      }
+                    >
                       Restore
                     </Button>
                   ) : null}
                 </div>
               </div>
               <dl className="grid gap-3 pt-4 text-sm sm:grid-cols-2 lg:grid-cols-3">
-                <Field label="Registration number" value={p.registrationNumber} />
+                <Field
+                  label="Registration number"
+                  value={p.registrationNumber}
+                />
                 <Field label="Licensing body" value={p.licensingBody} />
                 <Field label="Specialty" value={p.specialty} />
                 <Field label="Facility" value={p.facilityName} />
                 <Field label="Facility address" value={p.facilityAddress} />
-                {p.reviewNote ? <Field label="Review note" value={p.reviewNote} /> : null}
+                {p.reviewNote ? (
+                  <Field label="Review note" value={p.reviewNote} />
+                ) : null}
               </dl>
             </div>
           ))}
@@ -154,7 +228,13 @@ function Field({ label, value }: { label: string; value: string }) {
   );
 }
 
-function DecisionDialog({ pending, onClose }: { pending: Pending; onClose: () => void }) {
+function DecisionDialog({
+  pending,
+  onClose,
+}: {
+  pending: Pending;
+  onClose: () => void;
+}) {
   const review = useMutation(api.admin.accounts.reviewPhysician);
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
@@ -169,7 +249,11 @@ function DecisionDialog({ pending, onClose }: { pending: Pending; onClose: () =>
     if (!pending) return;
     setSaving(true);
     try {
-      await review({ profileId: pending.profileId, decision: pending.decision, note: note.trim() || undefined });
+      await review({
+        profileId: pending.profileId,
+        decision: pending.decision,
+        note: note.trim() || undefined,
+      });
       toast.success("Decision saved");
       close();
     } catch (error) {
@@ -181,20 +265,31 @@ function DecisionDialog({ pending, onClose }: { pending: Pending; onClose: () =>
 
   const copy = pending ? DECISION_COPY[pending.decision] : null;
   return (
-    <Dialog open={pending !== null} onOpenChange={(open) => { if (!open) close(); }}>
+    <Dialog
+      open={pending !== null}
+      onOpenChange={(open) => {
+        if (!open) close();
+      }}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{copy?.title}</DialogTitle>
           <DialogDescription>{pending?.name}</DialogDescription>
         </DialogHeader>
         <div className="space-y-2">
-          <Label htmlFor="review-note">{needsNote ? "Reason (shown to the physician)" : "Note (optional)"}</Label>
+          <Label htmlFor="review-note">
+            {needsNote ? "Reason (shown to the physician)" : "Note (optional)"}
+          </Label>
           <Textarea
             id="review-note"
             rows={3}
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder={needsNote ? "Registration number could not be confirmed with the licensing body." : "Checked with licensing register."}
+            placeholder={
+              needsNote
+                ? "Registration number could not be confirmed with the licensing body."
+                : "Checked with licensing register."
+            }
           />
         </div>
         <DialogFooter>
@@ -204,7 +299,9 @@ function DecisionDialog({ pending, onClose }: { pending: Pending; onClose: () =>
           <Button
             onClick={onConfirm}
             disabled={saving || (needsNote && note.trim().length < 2)}
-            variant={pending?.decision === "verified" ? "default" : "destructive"}
+            variant={
+              pending?.decision === "verified" ? "default" : "destructive"
+            }
           >
             {saving ? <Spinner /> : null}
             {copy?.button}

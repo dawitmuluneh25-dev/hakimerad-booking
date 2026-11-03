@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge.tsx";
-import { PHYSICIAN_STATUS_LABELS, type PhysicianStatus } from "@/convex/shared/roles.ts";
+import { PHYSICIAN_STATUS_LABELS, type PhysicianStatus } from "@/shared/roles.ts";
 import { cn } from "@/lib/utils.ts";
 
 const TONE: Record<PhysicianStatus, string> = {

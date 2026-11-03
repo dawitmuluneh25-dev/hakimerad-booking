@@ -1,0 +1,58 @@
+import { createFileRoute } from "@tanstack/react-router";
+
+const EXTENSION_TYPES: Record<string, string> = {
+  pdf: "application/pdf",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  png: "image/png",
+  webp: "image/webp",
+};
+
+export const Route = createFileRoute("/api/upload")({
+  server: {
+    handlers: {
+      // Private uploads: the files never leave the local disk and are served
+      // back only through /api/files/$id after a permission check.
+      POST: async ({ request }) => {
+        const [{ getDb }, { identityFromSessionToken, readCookie, SESSION_COOKIE }, { storeFile }, shared] =
+          await Promise.all([
+            import("@/server/db.ts"),
+            import("@/server/auth.ts"),
+            import("@/server/storage.ts"),
+            import("@/shared/referrals.ts"),
+          ]);
+
+        const identity = identityFromSessionToken(
+          readCookie(request.headers.get("cookie"), SESSION_COOKIE),
+        );
+        if (!identity) {
+          return Response.json({ message: "Please sign in." }, { status: 401 });
+        }
+
+        const form = await request.formData();
+        const file = form.get("file");
+        if (!(file instanceof File)) {
+          return Response.json({ message: "No file was uploaded." }, { status: 400 });
+        }
+        const contentType =
+          file.type || EXTENSION_TYPES[file.name.split(".").pop()?.toLowerCase() ?? ""] || "";
+        if (!(shared.ALLOWED_FILE_TYPES as readonly string[]).includes(contentType)) {
+          return Response.json(
+            { message: "Only PDF, JPEG, PNG or WebP files can be attached." },
+            { status: 400 },
+          );
+        }
+        if (file.size > shared.MAX_FILE_BYTES) {
+          return Response.json({ message: "Each file must be 15 MB or smaller." }, { status: 400 });
+        }
+
+        const storageId = storeFile(getDb(), {
+          bytes: new Uint8Array(await file.arrayBuffer()),
+          fileName: file.name,
+          contentType,
+        });
+        return Response.json({ storageId });
+      },
+    },
+  },
+});

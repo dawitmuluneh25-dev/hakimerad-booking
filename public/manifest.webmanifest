@@ -1,0 +1,35 @@
+{
+  "name": "HakimeRAD IR Booking",
+  "short_name": "HakimeRAD",
+  "description": "Referral, review and scheduling for image-guided interventional radiology procedures.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#1f6f78",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    { "name": "Start a procedure request", "url": "/request" },
+    { "name": "How referrals work", "url": "/how-it-works" }
+  ]
+}

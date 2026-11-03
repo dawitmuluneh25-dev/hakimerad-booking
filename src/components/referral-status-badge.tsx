@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge.tsx";
-import { REFERRAL_STATUS_LABELS, type ReferralStatus } from "@/convex/shared/referrals.ts";
+import { REFERRAL_STATUS_LABELS, type ReferralStatus } from "@/shared/referrals.ts";
 import { cn } from "@/lib/utils.ts";
 
 const TONE: Record<ReferralStatus, string> = {

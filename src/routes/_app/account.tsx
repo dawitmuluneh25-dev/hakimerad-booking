@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "convex/react";
+import { api, useMutation } from "@/lib/api.ts";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -20,8 +20,7 @@ import {
 } from "@/components/ui/form.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { Spinner } from "@/components/ui/spinner.tsx";
-import { api } from "@/convex/_generated/api.js";
-import { ROLE_LABELS } from "@/convex/shared/roles.ts";
+import { ROLE_LABELS } from "@/shared/roles.ts";
 import { useMe, type Me } from "@/hooks/use-me.ts";
 import { errorMessage } from "@/lib/errors.ts";
 import { phoneSchema, requiredText } from "@/lib/form-schemas.ts";

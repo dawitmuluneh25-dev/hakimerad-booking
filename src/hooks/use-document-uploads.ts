@@ -1,14 +1,13 @@
 import { useState } from "react";
-import { useMutation } from "convex/react";
+import { api, useMutation } from "@/lib/api.ts";
 import { toast } from "sonner";
-import { api } from "@/convex/_generated/api.js";
-import type { Id } from "@/convex/_generated/dataModel";
+import type { Id } from "@/lib/ids.ts";
 import {
   ALLOWED_FILE_TYPES,
   MAX_DOCUMENTS,
   MAX_FILE_BYTES,
   type DocumentKind,
-} from "@/convex/shared/referrals.ts";
+} from "@/shared/referrals.ts";
 import { errorMessage } from "@/lib/errors.ts";
 
 export type UploadItem = {
@@ -22,7 +21,6 @@ export type UploadItem = {
 
 /** Uploads files to private storage as soon as they are picked; they attach on submit. */
 export function useDocumentUploads(existingCount = 0) {
-  const generateUploadUrl = useMutation(api.referrals.generateUploadUrl);
   const discardUpload = useMutation(api.referrals.discardUpload);
   const [items, setItems] = useState<UploadItem[]>([]);
 
@@ -31,15 +29,18 @@ export function useDocumentUploads(existingCount = 0) {
 
   const uploadOne = async (file: File, localId: string) => {
     try {
-      const url = await generateUploadUrl();
-      const response = await fetch(url, {
+      const body = new FormData();
+      body.append("file", file);
+      const response = await fetch("/api/upload", {
         method: "POST",
-        headers: { "Content-Type": file.type },
-        body: file,
+        body,
+        credentials: "same-origin",
       });
-      if (!response.ok) throw new Error("Upload failed");
-      const { storageId } = (await response.json()) as { storageId: Id<"_storage"> };
-      patch(localId, { status: "done", storageId });
+      const payload = (await response.json()) as { storageId?: string; message?: string };
+      if (!response.ok || !payload.storageId) {
+        throw new Error(payload.message ?? "Upload failed");
+      }
+      patch(localId, { status: "done", storageId: payload.storageId });
     } catch (error) {
       patch(localId, { status: "error" });
       toast.error(errorMessage(error, `Could not upload ${file.name}.`));

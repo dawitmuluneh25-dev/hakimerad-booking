@@ -36,15 +36,15 @@ tsconfig.tsbuildinfo
 .env*
 !.env.example
 
-# Cloudflare
-.wrangler
+# Local database and uploads
+/data/
 
 # Agent runtime bookkeeping (recreated by the host tooling)
 /.buyer-execution-hooks/
 /.collect/
 /browser-results/
 
-# Hercules sandbox placeholders
+# Sandbox user-config placeholders
 /.bash_profile
 /.bashrc
 /.gitconfig

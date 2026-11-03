@@ -9,105 +9,69 @@ import {
   useLocation,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
-import type { ConvexQueryClient } from "@convex-dev/react-query";
-import type { ConvexReactClient } from "convex/react";
-import { getAuthAction, getIdTokenAction } from "@usehercules/auth-tanstack";
-import type { ClientUserInfo, NoUserInfo } from "@usehercules/auth-tanstack";
-import ConvexAppProvider from "@/components/providers/convex.tsx";
+import OfflineBanner from "@/components/offline-banner.tsx";
+import SessionProvider from "@/components/providers/session.tsx";
 import ThemeProvider from "@/components/providers/theme.tsx";
 import RouteError from "@/components/route-error.tsx";
 import { buttonVariants } from "@/components/ui/button.tsx";
 import { Toaster } from "@/components/ui/sonner.tsx";
 import { TooltipProvider } from "@/components/ui/tooltip.tsx";
 import { useAuthErrorToast } from "@/hooks/use-auth-error-toast.ts";
+import { getSession } from "@/server/api.ts";
 import { site } from "@/lib/site.ts";
 import appCss from "@/index.css?url";
 
-// The client reuses one session snapshot across navigations (`getAuthAction`
-// is a round trip) until it is a minute old or the tab was hidden.
-const CLIENT_AUTH_TTL_MS = 60_000;
-
-let clientAuth:
-  | { promise: Promise<ClientUserInfo | NoUserInfo>; fetchedAt: number }
-  | undefined;
-let clearsOnHide = false;
-
-function getClientAuth(): Promise<ClientUserInfo | NoUserInfo> {
-  if (!clearsOnHide) {
-    clearsOnHide = true;
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "hidden") clientAuth = undefined;
-    });
-  }
-  const now = Date.now();
-  if (
-    clientAuth === undefined ||
-    now - clientAuth.fetchedAt > CLIENT_AUTH_TTL_MS
-  ) {
-    const promise = getAuthAction().catch((error: unknown) => {
-      // Don't cache a rejection: let the next navigation retry.
-      if (clientAuth?.promise === promise) clientAuth = undefined;
-      throw error;
-    });
-    clientAuth = { promise, fetchedAt: now };
-  }
-  return clientAuth.promise;
-}
-
-export const Route = createRootRouteWithContext<{
-  queryClient: QueryClient;
-  convexClient: ConvexReactClient;
-  convexQueryClient: ConvexQueryClient;
-}>()({
-  // During SSR the ID token authenticates the server Convex client; only the
-  // sanitized session reaches the browser.
-  beforeLoad: async (ctx) => {
-    const serverHttpClient = ctx.context.convexQueryClient.serverHttpClient;
-    if (serverHttpClient) {
-      const [auth, idToken] = await Promise.all([
-        getAuthAction(),
-        getIdTokenAction(),
-      ]);
-      if (idToken) {
-        serverHttpClient.setAuth(idToken);
-      }
-      return { auth };
-    }
-    return { auth: await getClientAuth() };
+export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
+  {
+    // The session snapshot is read on the server for the first paint and then
+    // re-read on client navigations, so signed-in chrome never flashes.
+    beforeLoad: async () => {
+      const session = await getSession();
+      return { user: session.user };
+    },
+    head: () => ({
+      meta: [
+        { charSet: "utf-8" },
+        { name: "viewport", content: "width=device-width, initial-scale=1.0" },
+        { title: site.name },
+        { name: "description", content: site.tagline },
+        { name: "theme-color", content: "#1f6f78" },
+        { property: "og:title", content: site.name },
+        { property: "og:description", content: site.tagline },
+      ],
+      links: [
+        { rel: "icon", href: "/favicon.ico" },
+        { rel: "apple-touch-icon", href: "/icons/apple-touch-icon.png" },
+        { rel: "manifest", href: "/manifest.webmanifest" },
+        { rel: "stylesheet", href: appCss },
+      ],
+    }),
+    errorComponent: RootRouteError,
+    notFoundComponent: NotFound,
+    component: RootComponent,
+    shellComponent: RootDocument,
   },
-  head: () => ({
-    meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1.0" },
-      { title: site.name },
-      { name: "description", content: site.tagline },
-      { name: "theme-color", content: "#1f6f78" },
-      { property: "og:title", content: site.name },
-      { property: "og:description", content: site.tagline },
-      {
-        property: "og:image",
-        content: "https://hercules-cdn.com/file_QpHX0Z5hDmrxINlo8dzQhMco",
-      },
-    ],
-    links: [
-      { rel: "icon", href: "/favicon.ico" },
-      { rel: "stylesheet", href: appCss },
-    ],
-  }),
-  errorComponent: RootRouteError,
-  notFoundComponent: NotFound,
-  component: RootComponent,
-  shellComponent: RootDocument,
-});
+);
 
 function RootComponent() {
-  const { convexClient, auth } = Route.useRouteContext();
-  useAuthErrorToast(auth.user !== null);
+  const { user } = Route.useRouteContext();
+  useAuthErrorToast(user !== null);
+  useServiceWorker();
   return (
-    <ConvexAppProvider client={convexClient} initialAuth={auth}>
+    <SessionProvider initialUser={user}>
+      <OfflineBanner />
       <Outlet />
-    </ConvexAppProvider>
+    </SessionProvider>
   );
+}
+
+/** Registers the service worker in production builds only. */
+function useServiceWorker() {
+  useEffect(() => {
+    if (!import.meta.env.PROD || typeof navigator === "undefined") return;
+    if (!("serviceWorker" in navigator)) return;
+    void navigator.serviceWorker.register("/sw.js").catch(() => undefined);
+  }, []);
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {

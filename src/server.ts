@@ -1,10 +1,15 @@
 import handler, { createServerEntry } from "@tanstack/react-start/server-entry";
 import { withErrorPage } from "@/lib/start-error-page.ts";
 
-// Hercules adds HSTS and X-Frame-Options itself, from the app's Security settings.
+// Self-hosted: nothing upstream adds HSTS or framing protection for us, so set
+// them here. Browsers ignore HSTS over plain http, so this is safe in dev.
 const SECURITY_HEADERS = [
   ["x-content-type-options", "nosniff"],
   ["referrer-policy", "strict-origin-when-cross-origin"],
+  ["x-frame-options", "DENY"],
+  ["content-security-policy", "frame-ancestors 'none'"],
+  ["strict-transport-security", "max-age=31536000; includeSubDomains"],
+  ["permissions-policy", "camera=(), microphone=(), geolocation=()"],
 ] as const;
 
 // Deployed apps get an HTML error page instead of Start's raw JSON (dev keeps

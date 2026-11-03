@@ -14,7 +14,7 @@ export default function RouteError({ error, reset }: ErrorComponentProps) {
   }, [queryErrorResetBoundary, reset, router]);
 
   useEffect(() => {
-    // The Hercules preview console picks up errors logged with this prefix.
+    // Single stable prefix so the error is easy to grep in server/browser logs.
     console.error("[Runtime Error]", error);
   }, [error]);
 

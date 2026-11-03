@@ -1,9 +1,8 @@
-import { useConvexAuth, useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api.js";
+import { api, useAuthStatus, useQuery } from "@/lib/api.ts";
 
 /** The signed-in user's account summary; undefined while loading, null when signed out. */
 export function useMe() {
-  const { isAuthenticated } = useConvexAuth();
+  const { isAuthenticated } = useAuthStatus();
   return useQuery(api.users.me, isAuthenticated ? {} : "skip");
 }
 

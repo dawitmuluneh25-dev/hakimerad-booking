@@ -1,13 +1,12 @@
 import { useState } from "react";
-import { useMutation } from "convex/react";
+import { api, useMutation } from "@/lib/api.ts";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button.tsx";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog.tsx";
 import { Label } from "@/components/ui/label.tsx";
 import { Spinner } from "@/components/ui/spinner.tsx";
 import { Textarea } from "@/components/ui/textarea.tsx";
-import { api } from "@/convex/_generated/api.js";
-import type { Id } from "@/convex/_generated/dataModel";
+import type { Id } from "@/lib/ids.ts";
 import { useDocumentUploads } from "@/hooks/use-document-uploads.ts";
 import { errorMessage } from "@/lib/errors.ts";
 import DocumentPicker from "./document-picker.tsx";

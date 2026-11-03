@@ -1,22 +1,12 @@
-import convexPlugin from "@convex-dev/eslint-plugin";
 import js from "@eslint/js";
-import herculesPlugin from "@usehercules/eslint-plugin";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
-import { globalIgnores } from "eslint/config";
+import { defineConfig, globalIgnores } from "eslint/config";
 import globals from "globals";
 import tseslint from "typescript-eslint";
-import { defineConfig } from "eslint/config";
 
 export default defineConfig([
-  globalIgnores([
-    "dist",
-    ".output",
-    ".tanstack",
-    ".github",
-    "**/_generated/*",
-    "src/routeTree.gen.ts",
-  ]),
+  globalIgnores(["dist", ".output", ".tanstack", "coverage", "src/routeTree.gen.ts"]),
   {
     files: ["**/*.{ts,tsx}"],
     extends: [
@@ -24,8 +14,6 @@ export default defineConfig([
       tseslint.configs.recommended,
       reactHooks.configs.flat["recommended-latest"],
       reactRefresh.configs.vite,
-      convexPlugin.configs.recommended,
-      herculesPlugin.configs.recommended,
     ],
     rules: {
       "@typescript-eslint/ban-ts-comment": [
@@ -34,31 +22,24 @@ export default defineConfig([
       ],
       "@typescript-eslint/no-unused-vars": "off",
       "prefer-const": "off",
-      "react-refresh/only-export-components": [
-        "warn",
-        { allowConstantExport: true },
-      ],
+      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
       "react-hooks/set-state-in-effect": "warn",
       "react-hooks/purity": "warn",
       "react-hooks/refs": "warn",
     },
     languageOptions: {
-      ecmaVersion: 2020,
-      globals: globals.browser,
+      ecmaVersion: 2022,
+      globals: { ...globals.browser, ...globals.node },
     },
   },
   {
     // shadcn/ui components co-export their cva variant helpers by design.
     files: ["src/components/ui/**"],
-    rules: {
-      "react-refresh/only-export-components": "off",
-    },
+    rules: { "react-refresh/only-export-components": "off" },
   },
   {
     // Route files export `Route` next to their component by design.
     files: ["src/routes/**", "src/router.tsx"],
-    rules: {
-      "react-refresh/only-export-components": "off",
-    },
+    rules: { "react-refresh/only-export-components": "off" },
   },
 ]);

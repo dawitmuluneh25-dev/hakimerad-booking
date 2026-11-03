@@ -1,11 +1,17 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useMutation, usePaginatedQuery } from "convex/react";
+import { api, useMutation, usePaginatedQuery } from "@/lib/api.ts";
 import { SearchIcon, UsersIcon } from "lucide-react";
 import { toast } from "sonner";
 import AppPage from "@/components/app-page.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty.tsx";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import {
   Select,
@@ -15,9 +21,8 @@ import {
   SelectValue,
 } from "@/components/ui/select.tsx";
 import { Skeleton } from "@/components/ui/skeleton.tsx";
-import { api } from "@/convex/_generated/api.js";
-import type { Id } from "@/convex/_generated/dataModel";
-import { ROLES, ROLE_LABELS, type Role } from "@/convex/shared/roles.ts";
+import type { Id } from "@/lib/ids.ts";
+import { ROLES, ROLE_LABELS, type Role } from "@/shared/roles.ts";
 import { useDebounce } from "@/hooks/use-debounce.ts";
 import { useMe } from "@/hooks/use-me.ts";
 import { errorMessage } from "@/lib/errors.ts";
@@ -56,7 +61,10 @@ function UsersPage() {
   );
 
   return (
-    <AppPage title="Users and roles" description="Assign staff roles. Patients and physicians choose their own account type at sign-up.">
+    <AppPage
+      title="Users and roles"
+      description="Assign staff roles. Patients and physicians choose their own account type at sign-up."
+    >
       <div className="flex flex-col gap-3 pb-6 sm:flex-row">
         <div className="relative flex-1">
           <SearchIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -71,9 +79,14 @@ function UsersPage() {
         <Select
           items={FILTER_ITEMS}
           value={filter}
-          onValueChange={(value) => { if (value) setFilter(value); }}
+          onValueChange={(value) => {
+            if (value) setFilter(value);
+          }}
         >
-          <SelectTrigger className="w-full cursor-pointer sm:w-56" aria-label="Filter by role">
+          <SelectTrigger
+            className="w-full cursor-pointer sm:w-56"
+            aria-label="Filter by role"
+          >
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -99,7 +112,9 @@ function UsersPage() {
               <UsersIcon />
             </EmptyMedia>
             <EmptyTitle>No users found</EmptyTitle>
-            <EmptyDescription>Try a different search or role filter.</EmptyDescription>
+            <EmptyDescription>
+              Try a different search or role filter.
+            </EmptyDescription>
           </EmptyHeader>
         </Empty>
       ) : (
@@ -124,7 +139,12 @@ function UserRow({
   user,
   isSelf,
 }: {
-  user: { _id: Id<"users">; email: string; fullName: string; role: Role | null };
+  user: {
+    _id: Id<"users">;
+    email: string;
+    fullName: string;
+    role: Role | null;
+  };
   isSelf: boolean;
 }) {
   const setRole = useMutation(api.admin.accounts.setUserRole);
@@ -143,16 +163,25 @@ function UserRow({
       <div className="min-w-0">
         <p className="truncate font-medium">
           {user.fullName || "Name not set"}
-          {isSelf ? <span className="pl-2 text-xs text-muted-foreground">(you)</span> : null}
+          {isSelf ? (
+            <span className="pl-2 text-xs text-muted-foreground">(you)</span>
+          ) : null}
         </p>
-        <p className="truncate text-sm text-muted-foreground">{user.email || "No email"}</p>
+        <p className="truncate text-sm text-muted-foreground">
+          {user.email || "No email"}
+        </p>
       </div>
       <Select
         items={ROLE_ITEMS}
         value={user.role}
-        onValueChange={(value) => { if (value) void onChange(value); }}
+        onValueChange={(value) => {
+          if (value) void onChange(value);
+        }}
       >
-        <SelectTrigger className="w-full cursor-pointer sm:w-60" aria-label={`Role for ${user.email}`}>
+        <SelectTrigger
+          className="w-full cursor-pointer sm:w-60"
+          aria-label={`Role for ${user.email}`}
+        >
           <SelectValue placeholder="No role yet" />
         </SelectTrigger>
         <SelectContent>

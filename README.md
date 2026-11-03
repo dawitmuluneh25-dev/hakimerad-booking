@@ -9,106 +9,140 @@ An IR referral request is **not** an appointment: only a clinician approves, and
 scheduling happens after approval.
 
 Product rules, architecture notes and the remaining milestone plan live in
-[docs/PROJECT-HANDOFF.md](docs/PROJECT-HANDOFF.md). Read it before changing
-behaviour.
+[docs/PROJECT-HANDOFF.md](docs/PROJECT-HANDOFF.md), which still describes the
+original hosted backend. The current stack is fully self-contained (see below);
+apply its product rules, not its infrastructure choices.
 
 ## Stack
 
-| Layer      | Choice                                                             |
-| ---------- | ------------------------------------------------------------------ |
-| UI         | React 19, TanStack Start (SSR) + TanStack Router, Tailwind CSS v4  |
-| Components | shadcn on Base UI (`render` prop, never `asChild`), lucide icons   |
-| Backend    | Convex (schema, queries, mutations in `convex/`)                   |
-| Auth       | Hercules Auth (`@usehercules/auth-tanstack`, OIDC)                 |
-| Build      | Vite 8 via `@usehercules/vite-tanstack`; Cloudflare Workers target |
-| Tests      | Vitest: `convex-test` project + jsdom/Testing Library project      |
+| Layer      | Choice                                                                 |
+| ---------- | ---------------------------------------------------------------------- |
+| UI         | React 19, TanStack Start (SSR) + TanStack Router, Tailwind CSS v4       |
+| Components | shadcn on Base UI (`render` prop, never `asChild`), lucide icons        |
+| Server     | TanStack server functions (`createServerFn`) over Node                  |
+| Data       | SQLite through the built-in `node:sqlite` module, files on local disk   |
+| Auth       | OIDC authorization code + PKCE (`openid-client`), encrypted cookie       |
+| Build      | Plain Vite 8 with `@tanstack/react-start/plugin/vite`                   |
+| Tests      | Vitest, in-memory SQLite per test                                      |
+
+There is no hosted backend, no proprietary platform package, no database server
+and no deploy CLI. Everything the app needs is installed by `pnpm install` and
+runs on Node 22.
 
 ## Requirements
 
-- Node.js 22 (verified on v22.23.2)
-- pnpm 12 (verified on 12.16.1; `packageManager`-less repo, lockfile is `pnpm-lock.yaml`)
+- Node.js 22.5+ (verified on v22.23.2; `node:sqlite` is built in)
+- pnpm 12 (verified on 12.16.1)
 
 ## Setup
 
 ```bash
 pnpm install
-```
-
-Then create your local env file:
-
-```bash
 cp .env.example .env.local   # PowerShell: Copy-Item .env.example .env.local
+pnpm dev                     # http://localhost:5173
 ```
 
-Fill in the values as described in [`.env.example`](.env.example):
+The database (`data/app.db`) and upload directory (`data/uploads`) are created
+on first request. Delete `data/` to start from an empty install.
 
-| Variable                        | Where   | Required | Notes                                                     |
-| ------------------------------- | ------- | -------- | --------------------------------------------------------- |
-| `VITE_CONVEX_URL`               | browser | yes      | Deployment URL from `pnpm exec convex dev`                |
-| `HERCULES_AUTH_ISSUER_URL`      | server  | yes      | OIDC issuer (`{issuer}/.well-known/openid-configuration`) |
-| `HERCULES_AUTH_CLIENT_ID`       | server  | yes      | OAuth client id                                           |
-| `HERCULES_AUTH_COOKIE_PASSWORD` | server  | yes      | ≥32 random chars; derive from bytes, not a passphrase     |
-| `HERCULES_AUTH_CLIENT_SECRET`   | server  | no       | Confidential clients only                                 |
-| `HERCULES_AUTH_REDIRECT_URI`    | server  | no       | Positioned proxies only; defaults to the request URL      |
+Sign-in needs an OIDC client; without one the public site still works and
+`/auth/sign-in` returns 503 with a clear message. Configure:
 
-`convex/auth.config.ts` reads its issuer/client id from the **deployment**
-environment, not from `.env.local`:
+| Variable               | Required | Notes                                                        |
+| ---------------------- | -------- | ------------------------------------------------------------ |
+| `AUTH_ISSUER_URL`      | for auth | `{issuer}/.well-known/openid-configuration` must resolve      |
+| `AUTH_CLIENT_ID`       | for auth | OAuth client id                                              |
+| `AUTH_COOKIE_SECRET`   | for auth | ≥32 random characters; encrypts the session cookie           |
+| `AUTH_CLIENT_SECRET`   | no       | Confidential clients only                                    |
+| `AUTH_REDIRECT_URI`    | no       | Defaults to the request origin; set behind a TLS proxy        |
+| `AUTH_SCOPE`           | no       | Defaults to `openid profile email`                           |
+| `DATABASE_PATH`        | no       | Defaults to `./data/app.db`                                  |
+| `DATA_DIR`             | no       | Defaults to `./data` (uploads live in `uploads/`)             |
 
-```bash
-pnpm exec convex env set HERCULES_OIDC_AUTHORITY <issuer URL>
-pnpm exec convex env set HERCULES_OIDC_CLIENT_ID <client id>
-```
-
-Run the Convex dev process alongside Vite in a second terminal:
-
-```bash
-pnpm exec convex dev
-pnpm dev            # http://localhost:5173
-```
-
-The public site renders without Convex or auth credentials; `/auth/sign-in` and
-any signed-in screen need the values above.
+Register `http://localhost:5173/auth/callback` as an allowed redirect URI in the
+provider.
 
 ## Scripts
 
-| Command                                     | What it does                                                         |
-| ------------------------------------------- | -------------------------------------------------------------------- |
-| `pnpm dev`                                  | Vite dev server on :5173 (run `convex dev` beside it for data)       |
-| `pnpm build`                                | Production build into `dist/`                                        |
-| `pnpm preview`                              | Preview the production build                                         |
-| `pnpm test`                                 | Vitest run (17 tests: `convex/accounts`, `convex/referrals`)         |
-| `pnpm typecheck`                            | Regenerate the route tree, then `tsc --noEmit` for app and `convex/` |
-| `pnpm lint`                                 | ESLint, zero warnings allowed                                        |
-| `pnpm generate-routes`                      | Regenerate `src/routeTree.gen.ts` after adding a route file          |
-| `pnpm prettier-check` / `pnpm prettier-fix` | Formatting check / rewrite                                           |
+| Command                | What it does                                                       |
+| ---------------------- | ------------------------------------------------------------------ |
+| `pnpm dev`             | Vite dev server on :5173                                            |
+| `pnpm build`           | Production build into `dist/` (Node SSR bundle + client assets)     |
+| `pnpm preview`         | Serve the production build                                          |
+| `pnpm test`            | Vitest: server-side workflow tests over in-memory SQLite            |
+| `pnpm typecheck`       | Regenerate the route tree, then `tsc --noEmit`                      |
+| `pnpm lint`            | ESLint, zero warnings allowed                                       |
+| `pnpm generate-routes` | Regenerate `src/routeTree.generated.ts` after adding a route file   |
+| `pnpm prettier-check` / `pnpm prettier-fix` | Formatting check / rewrite                     |
 
-Tests are hermetic (no deployment, no network). The suite raises `testTimeout`
-to 20s in `vitest.config.ts` because the first `convex-test` case in a file
-builds a fresh in-memory backend and can exceed Vitest's 5s default on a cold
-transform cache.
-
-## Layout
+## How the pieces fit
 
 ```
-convex/                 schema, queries, mutations, tests, shared validators
-  schema/               per-domain tables assembled by schema.ts
-  lib/                  auth, audit, validation, referral helpers
-  shared/               pure code imported by both Convex and the UI
-src/
-  routes/_public/       public site (home, procedures, how-it-works, request…)
-  routes/_app/          signed-in app shell, dashboard, requests, admin
-  components/           shadcn-based UI, logo, urgent notice
-  lib/                  site copy, procedures content, helpers, hooks
-  routeTree.gen.ts      generated by the router CLI — do not hand-edit
-docs/                   project hand-off and archived notes
+src/server/
+  db.ts            SQLite connection, schema, row helpers
+  context.ts       request context, permission helpers, audit log
+  auth.ts          OIDC sign-in/callback/sign-out, sealed session cookie
+  storage.ts       private uploads on disk + metadata rows
+  services/        business rules (users, referrals, admin, reviews, urgent,
+                   scheduling, care, notifications, reports) — unit-tested
+  api.ts           server functions the UI calls
+  runtime.ts       request-scoped wiring (lazy, server-only)
+src/lib/api.ts     typed client handles + useQuery/useMutation/usePaginatedQuery
+src/routes/        file routes; /api/upload and /api/files/$id serve documents
+src/shared/        pure constants shared by server and UI
 ```
+
+- Permissions are enforced in `services/`, never in the UI. Every state change
+  writes an `audit_logs` row.
+- Read helpers return `null`/empty pages for anonymous callers so SSR is safe;
+  mutations throw an `AppError` with a user-facing message.
+- Documents are private: `/api/files/$id` checks the session, the uploader, the
+  request owner, or a staff role before streaming bytes.
+- Nested form data (patient, clinical, imaging) is stored as JSON columns to
+  keep the domain shape close to the UI; lists use indexed columns.
 
 ## Conventions
 
-- Enforce every permission on the backend; never trust a user id from the client.
-- Every state change calls `logAudit`.
-- Read queries return `null`/empty pages for anonymous callers; mutations throw
-  `ConvexError({ message, code })`.
 - No clinical rules in code (fasting, medication, durations) — they are data.
-- Do not edit `/auth/callback`, the `updateCurrentUser` args, auth env names,
-  `vite.config.ts`, `wrangler.jsonc` or `tsconfig.json` (see the hand-off).
+- Calendar dates are `YYYY-MM-DD`; timestamps are ISO UTC strings. Appointment
+  times are clinic wall-clock (`YYYY-MM-DDTHH:MM`) so hours and conflicts
+  compare without time-zone conversion.
+- Status changes go through ONE transition table (`src/shared/workflow.ts`).
+- `src/routeTree.gen.ts` is generated; never hand-edit it.
+
+## Tests
+
+`pnpm test` runs everything in a hermetic in-memory database:
+
+- `src/server/services/accounts.test.ts` — onboarding, first admin, physician
+  verification, role management.
+- `src/server/services/referrals.test.ts` — submission, guardian rules, document
+  validation, privacy, withdrawal.
+- `src/server/services/workflow.test.ts` — clinical review permissions and
+  checklist gating, information requests, booking conflicts and closing-time
+  limits, cancellation, urgent-case sequencing, preparation permissions, reports.
+
+## Screens
+
+Public: `/`, `/procedures/*`, `/how-it-works`, `/referrers`, `/request`,
+`/contact`, `/privacy`, `/booking-policy`, `/offline`.
+
+Signed in: `/dashboard`, `/requests`, `/requests/$reference`, `/account`,
+`/notifications`.
+
+Staff: `/staff/queue`, `/staff/review/$reference`, `/schedule`, `/urgent`,
+`/urgent/new`, `/urgent/$reference`.
+
+Admin: `/admin/reports`, `/admin/audit`, `/admin/settings`, `/admin/resources`,
+`/admin/institutions`, `/admin/physicians`, `/admin/users`.
+
+## Installable app
+
+`public/manifest.webmanifest` + `public/sw.js` + `/offline` make the app
+installable. Only the offline page and static assets are cached; signed-in HTML,
+`/api/*` and every private route stay out of the cache. Icons are generated by
+`node scripts/generate-icons.mjs` with no image dependency. Submissions are
+blocked while the browser reports no connection.
+
+Add a test for every permission rule, status transition and booking-conflict
+rule you introduce.

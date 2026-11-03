@@ -13,22 +13,38 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as PublicRouteImport } from './routes/_public'
 import { Route as AppAccountRouteImport } from './routes/_app/account'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
+import { Route as AppNotificationsRouteImport } from './routes/_app/notifications'
+import { Route as AppScheduleRouteImport } from './routes/_app/schedule'
 import { Route as PublicIndexRouteImport } from './routes/_public/index'
 import { Route as PublicBookingPolicyRouteImport } from './routes/_public/booking-policy'
 import { Route as PublicContactRouteImport } from './routes/_public/contact'
 import { Route as PublicHowItWorksRouteImport } from './routes/_public/how-it-works'
+import { Route as PublicOfflineRouteImport } from './routes/_public/offline'
 import { Route as PublicPrivacyRouteImport } from './routes/_public/privacy'
 import { Route as PublicReferrersRouteImport } from './routes/_public/referrers'
 import { Route as PublicRequestRouteImport } from './routes/_public/request'
+import { Route as ApiUploadRouteImport } from './routes/api/upload'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as AuthSignInRouteImport } from './routes/auth/sign-in'
+import { Route as AuthSignOutRouteImport } from './routes/auth/sign-out'
+import { Route as AppAdminAuditRouteImport } from './routes/_app/admin/audit'
+import { Route as AppAdminInstitutionsRouteImport } from './routes/_app/admin/institutions'
 import { Route as AppAdminPhysiciansRouteImport } from './routes/_app/admin/physicians'
+import { Route as AppAdminReportsRouteImport } from './routes/_app/admin/reports'
+import { Route as AppAdminResourcesRouteImport } from './routes/_app/admin/resources'
+import { Route as AppAdminSettingsRouteImport } from './routes/_app/admin/settings'
 import { Route as AppAdminUsersRouteImport } from './routes/_app/admin/users'
 import { Route as AppRequestsIndexRouteImport } from './routes/_app/requests/index'
 import { Route as AppRequestsReferenceRouteImport } from './routes/_app/requests/$reference'
+import { Route as AppStaffQueueRouteImport } from './routes/_app/staff/queue'
+import { Route as AppUrgentIndexRouteImport } from './routes/_app/urgent/index'
+import { Route as AppUrgentReferenceRouteImport } from './routes/_app/urgent/$reference'
+import { Route as AppUrgentNewRouteImport } from './routes/_app/urgent/new'
 import { Route as PublicProceduresIndexRouteImport } from './routes/_public/procedures/index'
 import { Route as PublicProceduresSlugRouteImport } from './routes/_public/procedures/$slug'
+import { Route as ApiFilesIdRouteImport } from './routes/api/files/$id'
 import { Route as AppRequestsNewProcedureRouteImport } from './routes/_app/requests/new/$procedure'
+import { Route as AppStaffReviewReferenceRouteImport } from './routes/_app/staff/review/$reference'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -46,6 +62,16 @@ const AppAccountRoute = AppAccountRouteImport.update({
 const AppDashboardRoute = AppDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppNotificationsRoute = AppNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppScheduleRoute = AppScheduleRouteImport.update({
+  id: '/schedule',
+  path: '/schedule',
   getParentRoute: () => AppRoute,
 } as any)
 const PublicIndexRoute = PublicIndexRouteImport.update({
@@ -68,6 +94,11 @@ const PublicHowItWorksRoute = PublicHowItWorksRouteImport.update({
   path: '/how-it-works',
   getParentRoute: () => PublicRoute,
 } as any)
+const PublicOfflineRoute = PublicOfflineRouteImport.update({
+  id: '/offline',
+  path: '/offline',
+  getParentRoute: () => PublicRoute,
+} as any)
 const PublicPrivacyRoute = PublicPrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
@@ -83,6 +114,11 @@ const PublicRequestRoute = PublicRequestRouteImport.update({
   path: '/request',
   getParentRoute: () => PublicRoute,
 } as any)
+const ApiUploadRoute = ApiUploadRouteImport.update({
+  id: '/api/upload',
+  path: '/api/upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
   path: '/auth/callback',
@@ -93,9 +129,39 @@ const AuthSignInRoute = AuthSignInRouteImport.update({
   path: '/auth/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthSignOutRoute = AuthSignOutRouteImport.update({
+  id: '/auth/sign-out',
+  path: '/auth/sign-out',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppAdminAuditRoute = AppAdminAuditRouteImport.update({
+  id: '/admin/audit',
+  path: '/admin/audit',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminInstitutionsRoute = AppAdminInstitutionsRouteImport.update({
+  id: '/admin/institutions',
+  path: '/admin/institutions',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAdminPhysiciansRoute = AppAdminPhysiciansRouteImport.update({
   id: '/admin/physicians',
   path: '/admin/physicians',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminReportsRoute = AppAdminReportsRouteImport.update({
+  id: '/admin/reports',
+  path: '/admin/reports',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminResourcesRoute = AppAdminResourcesRouteImport.update({
+  id: '/admin/resources',
+  path: '/admin/resources',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminSettingsRoute = AppAdminSettingsRouteImport.update({
+  id: '/admin/settings',
+  path: '/admin/settings',
   getParentRoute: () => AppRoute,
 } as any)
 const AppAdminUsersRoute = AppAdminUsersRouteImport.update({
@@ -113,6 +179,26 @@ const AppRequestsReferenceRoute = AppRequestsReferenceRouteImport.update({
   path: '/requests/$reference',
   getParentRoute: () => AppRoute,
 } as any)
+const AppStaffQueueRoute = AppStaffQueueRouteImport.update({
+  id: '/staff/queue',
+  path: '/staff/queue',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppUrgentIndexRoute = AppUrgentIndexRouteImport.update({
+  id: '/urgent/',
+  path: '/urgent/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppUrgentReferenceRoute = AppUrgentReferenceRouteImport.update({
+  id: '/urgent/$reference',
+  path: '/urgent/$reference',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppUrgentNewRoute = AppUrgentNewRouteImport.update({
+  id: '/urgent/new',
+  path: '/urgent/new',
+  getParentRoute: () => AppRoute,
+} as any)
 const PublicProceduresIndexRoute = PublicProceduresIndexRouteImport.update({
   id: '/procedures/',
   path: '/procedures/',
@@ -123,9 +209,19 @@ const PublicProceduresSlugRoute = PublicProceduresSlugRouteImport.update({
   path: '/procedures/$slug',
   getParentRoute: () => PublicRoute,
 } as any)
+const ApiFilesIdRoute = ApiFilesIdRouteImport.update({
+  id: '/api/files/$id',
+  path: '/api/files/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppRequestsNewProcedureRoute = AppRequestsNewProcedureRouteImport.update({
   id: '/requests/new/$procedure',
   path: '/requests/new/$procedure',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppStaffReviewReferenceRoute = AppStaffReviewReferenceRouteImport.update({
+  id: '/staff/review/$reference',
+  path: '/staff/review/$reference',
   getParentRoute: () => AppRoute,
 } as any)
 
@@ -133,41 +229,73 @@ export interface FileRoutesByFullPath {
   '/': typeof PublicIndexRoute
   '/account': typeof AppAccountRoute
   '/dashboard': typeof AppDashboardRoute
+  '/notifications': typeof AppNotificationsRoute
+  '/schedule': typeof AppScheduleRoute
   '/booking-policy': typeof PublicBookingPolicyRoute
   '/contact': typeof PublicContactRoute
   '/how-it-works': typeof PublicHowItWorksRoute
+  '/offline': typeof PublicOfflineRoute
   '/privacy': typeof PublicPrivacyRoute
   '/referrers': typeof PublicReferrersRoute
   '/request': typeof PublicRequestRoute
+  '/api/upload': typeof ApiUploadRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/sign-in': typeof AuthSignInRoute
+  '/auth/sign-out': typeof AuthSignOutRoute
+  '/admin/audit': typeof AppAdminAuditRoute
+  '/admin/institutions': typeof AppAdminInstitutionsRoute
   '/admin/physicians': typeof AppAdminPhysiciansRoute
+  '/admin/reports': typeof AppAdminReportsRoute
+  '/admin/resources': typeof AppAdminResourcesRoute
+  '/admin/settings': typeof AppAdminSettingsRoute
   '/admin/users': typeof AppAdminUsersRoute
   '/requests/$reference': typeof AppRequestsReferenceRoute
+  '/staff/queue': typeof AppStaffQueueRoute
+  '/urgent/$reference': typeof AppUrgentReferenceRoute
+  '/urgent/new': typeof AppUrgentNewRoute
   '/procedures/$slug': typeof PublicProceduresSlugRoute
+  '/api/files/$id': typeof ApiFilesIdRoute
   '/requests/': typeof AppRequestsIndexRoute
+  '/urgent/': typeof AppUrgentIndexRoute
   '/procedures/': typeof PublicProceduresIndexRoute
   '/requests/new/$procedure': typeof AppRequestsNewProcedureRoute
+  '/staff/review/$reference': typeof AppStaffReviewReferenceRoute
 }
 export interface FileRoutesByTo {
   '/': typeof PublicIndexRoute
   '/account': typeof AppAccountRoute
   '/dashboard': typeof AppDashboardRoute
+  '/notifications': typeof AppNotificationsRoute
+  '/schedule': typeof AppScheduleRoute
   '/booking-policy': typeof PublicBookingPolicyRoute
   '/contact': typeof PublicContactRoute
   '/how-it-works': typeof PublicHowItWorksRoute
+  '/offline': typeof PublicOfflineRoute
   '/privacy': typeof PublicPrivacyRoute
   '/referrers': typeof PublicReferrersRoute
   '/request': typeof PublicRequestRoute
+  '/api/upload': typeof ApiUploadRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/sign-in': typeof AuthSignInRoute
+  '/auth/sign-out': typeof AuthSignOutRoute
+  '/admin/audit': typeof AppAdminAuditRoute
+  '/admin/institutions': typeof AppAdminInstitutionsRoute
   '/admin/physicians': typeof AppAdminPhysiciansRoute
+  '/admin/reports': typeof AppAdminReportsRoute
+  '/admin/resources': typeof AppAdminResourcesRoute
+  '/admin/settings': typeof AppAdminSettingsRoute
   '/admin/users': typeof AppAdminUsersRoute
   '/requests/$reference': typeof AppRequestsReferenceRoute
+  '/staff/queue': typeof AppStaffQueueRoute
+  '/urgent/$reference': typeof AppUrgentReferenceRoute
+  '/urgent/new': typeof AppUrgentNewRoute
   '/procedures/$slug': typeof PublicProceduresSlugRoute
+  '/api/files/$id': typeof ApiFilesIdRoute
   '/requests': typeof AppRequestsIndexRoute
+  '/urgent': typeof AppUrgentIndexRoute
   '/procedures': typeof PublicProceduresIndexRoute
   '/requests/new/$procedure': typeof AppRequestsNewProcedureRoute
+  '/staff/review/$reference': typeof AppStaffReviewReferenceRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -175,22 +303,38 @@ export interface FileRoutesById {
   '/_public': typeof PublicRouteWithChildren
   '/_app/account': typeof AppAccountRoute
   '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/notifications': typeof AppNotificationsRoute
+  '/_app/schedule': typeof AppScheduleRoute
   '/_public/booking-policy': typeof PublicBookingPolicyRoute
   '/_public/contact': typeof PublicContactRoute
   '/_public/how-it-works': typeof PublicHowItWorksRoute
+  '/_public/offline': typeof PublicOfflineRoute
   '/_public/privacy': typeof PublicPrivacyRoute
   '/_public/referrers': typeof PublicReferrersRoute
   '/_public/request': typeof PublicRequestRoute
+  '/api/upload': typeof ApiUploadRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/sign-in': typeof AuthSignInRoute
+  '/auth/sign-out': typeof AuthSignOutRoute
   '/_public/': typeof PublicIndexRoute
+  '/_app/admin/audit': typeof AppAdminAuditRoute
+  '/_app/admin/institutions': typeof AppAdminInstitutionsRoute
   '/_app/admin/physicians': typeof AppAdminPhysiciansRoute
+  '/_app/admin/reports': typeof AppAdminReportsRoute
+  '/_app/admin/resources': typeof AppAdminResourcesRoute
+  '/_app/admin/settings': typeof AppAdminSettingsRoute
   '/_app/admin/users': typeof AppAdminUsersRoute
   '/_app/requests/$reference': typeof AppRequestsReferenceRoute
+  '/_app/staff/queue': typeof AppStaffQueueRoute
+  '/_app/urgent/$reference': typeof AppUrgentReferenceRoute
+  '/_app/urgent/new': typeof AppUrgentNewRoute
   '/_public/procedures/$slug': typeof PublicProceduresSlugRoute
+  '/api/files/$id': typeof ApiFilesIdRoute
   '/_app/requests/': typeof AppRequestsIndexRoute
+  '/_app/urgent/': typeof AppUrgentIndexRoute
   '/_public/procedures/': typeof PublicProceduresIndexRoute
   '/_app/requests/new/$procedure': typeof AppRequestsNewProcedureRoute
+  '/_app/staff/review/$reference': typeof AppStaffReviewReferenceRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -198,70 +342,121 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/dashboard'
+    | '/notifications'
+    | '/schedule'
     | '/booking-policy'
     | '/contact'
     | '/how-it-works'
+    | '/offline'
     | '/privacy'
     | '/referrers'
     | '/request'
+    | '/api/upload'
     | '/auth/callback'
     | '/auth/sign-in'
+    | '/auth/sign-out'
+    | '/admin/audit'
+    | '/admin/institutions'
     | '/admin/physicians'
+    | '/admin/reports'
+    | '/admin/resources'
+    | '/admin/settings'
     | '/admin/users'
     | '/requests/$reference'
+    | '/staff/queue'
+    | '/urgent/$reference'
+    | '/urgent/new'
     | '/procedures/$slug'
+    | '/api/files/$id'
     | '/requests/'
+    | '/urgent/'
     | '/procedures/'
     | '/requests/new/$procedure'
+    | '/staff/review/$reference'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/account'
     | '/dashboard'
+    | '/notifications'
+    | '/schedule'
     | '/booking-policy'
     | '/contact'
     | '/how-it-works'
+    | '/offline'
     | '/privacy'
     | '/referrers'
     | '/request'
+    | '/api/upload'
     | '/auth/callback'
     | '/auth/sign-in'
+    | '/auth/sign-out'
+    | '/admin/audit'
+    | '/admin/institutions'
     | '/admin/physicians'
+    | '/admin/reports'
+    | '/admin/resources'
+    | '/admin/settings'
     | '/admin/users'
     | '/requests/$reference'
+    | '/staff/queue'
+    | '/urgent/$reference'
+    | '/urgent/new'
     | '/procedures/$slug'
+    | '/api/files/$id'
     | '/requests'
+    | '/urgent'
     | '/procedures'
     | '/requests/new/$procedure'
+    | '/staff/review/$reference'
   id:
     | '__root__'
     | '/_app'
     | '/_public'
     | '/_app/account'
     | '/_app/dashboard'
+    | '/_app/notifications'
+    | '/_app/schedule'
     | '/_public/booking-policy'
     | '/_public/contact'
     | '/_public/how-it-works'
+    | '/_public/offline'
     | '/_public/privacy'
     | '/_public/referrers'
     | '/_public/request'
+    | '/api/upload'
     | '/auth/callback'
     | '/auth/sign-in'
+    | '/auth/sign-out'
     | '/_public/'
+    | '/_app/admin/audit'
+    | '/_app/admin/institutions'
     | '/_app/admin/physicians'
+    | '/_app/admin/reports'
+    | '/_app/admin/resources'
+    | '/_app/admin/settings'
     | '/_app/admin/users'
     | '/_app/requests/$reference'
+    | '/_app/staff/queue'
+    | '/_app/urgent/$reference'
+    | '/_app/urgent/new'
     | '/_public/procedures/$slug'
+    | '/api/files/$id'
     | '/_app/requests/'
+    | '/_app/urgent/'
     | '/_public/procedures/'
     | '/_app/requests/new/$procedure'
+    | '/_app/staff/review/$reference'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   PublicRoute: typeof PublicRouteWithChildren
+  ApiUploadRoute: typeof ApiUploadRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   AuthSignInRoute: typeof AuthSignInRoute
+  AuthSignOutRoute: typeof AuthSignOutRoute
+  ApiFilesIdRoute: typeof ApiFilesIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -294,6 +489,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDashboardRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/notifications': {
+      id: '/_app/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AppNotificationsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/schedule': {
+      id: '/_app/schedule'
+      path: '/schedule'
+      fullPath: '/schedule'
+      preLoaderRoute: typeof AppScheduleRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_public/': {
       id: '/_public/'
       path: '/'
@@ -322,6 +531,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicHowItWorksRouteImport
       parentRoute: typeof PublicRoute
     }
+    '/_public/offline': {
+      id: '/_public/offline'
+      path: '/offline'
+      fullPath: '/offline'
+      preLoaderRoute: typeof PublicOfflineRouteImport
+      parentRoute: typeof PublicRoute
+    }
     '/_public/privacy': {
       id: '/_public/privacy'
       path: '/privacy'
@@ -343,6 +559,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicRequestRouteImport
       parentRoute: typeof PublicRoute
     }
+    '/api/upload': {
+      id: '/api/upload'
+      path: '/api/upload'
+      fullPath: '/api/upload'
+      preLoaderRoute: typeof ApiUploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/callback': {
       id: '/auth/callback'
       path: '/auth/callback'
@@ -357,11 +580,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSignInRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/sign-out': {
+      id: '/auth/sign-out'
+      path: '/auth/sign-out'
+      fullPath: '/auth/sign-out'
+      preLoaderRoute: typeof AuthSignOutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/admin/audit': {
+      id: '/_app/admin/audit'
+      path: '/admin/audit'
+      fullPath: '/admin/audit'
+      preLoaderRoute: typeof AppAdminAuditRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/institutions': {
+      id: '/_app/admin/institutions'
+      path: '/admin/institutions'
+      fullPath: '/admin/institutions'
+      preLoaderRoute: typeof AppAdminInstitutionsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/admin/physicians': {
       id: '/_app/admin/physicians'
       path: '/admin/physicians'
       fullPath: '/admin/physicians'
       preLoaderRoute: typeof AppAdminPhysiciansRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/reports': {
+      id: '/_app/admin/reports'
+      path: '/admin/reports'
+      fullPath: '/admin/reports'
+      preLoaderRoute: typeof AppAdminReportsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/resources': {
+      id: '/_app/admin/resources'
+      path: '/admin/resources'
+      fullPath: '/admin/resources'
+      preLoaderRoute: typeof AppAdminResourcesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/settings': {
+      id: '/_app/admin/settings'
+      path: '/admin/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AppAdminSettingsRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/admin/users': {
@@ -385,6 +650,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRequestsReferenceRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/staff/queue': {
+      id: '/_app/staff/queue'
+      path: '/staff/queue'
+      fullPath: '/staff/queue'
+      preLoaderRoute: typeof AppStaffQueueRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/urgent/': {
+      id: '/_app/urgent/'
+      path: '/urgent'
+      fullPath: '/urgent/'
+      preLoaderRoute: typeof AppUrgentIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/urgent/$reference': {
+      id: '/_app/urgent/$reference'
+      path: '/urgent/$reference'
+      fullPath: '/urgent/$reference'
+      preLoaderRoute: typeof AppUrgentReferenceRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/urgent/new': {
+      id: '/_app/urgent/new'
+      path: '/urgent/new'
+      fullPath: '/urgent/new'
+      preLoaderRoute: typeof AppUrgentNewRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_public/procedures/': {
       id: '/_public/procedures/'
       path: '/procedures'
@@ -399,11 +692,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicProceduresSlugRouteImport
       parentRoute: typeof PublicRoute
     }
+    '/api/files/$id': {
+      id: '/api/files/$id'
+      path: '/api/files/$id'
+      fullPath: '/api/files/$id'
+      preLoaderRoute: typeof ApiFilesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app/requests/new/$procedure': {
       id: '/_app/requests/new/$procedure'
       path: '/requests/new/$procedure'
       fullPath: '/requests/new/$procedure'
       preLoaderRoute: typeof AppRequestsNewProcedureRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/staff/review/$reference': {
+      id: '/_app/staff/review/$reference'
+      path: '/staff/review/$reference'
+      fullPath: '/staff/review/$reference'
+      preLoaderRoute: typeof AppStaffReviewReferenceRouteImport
       parentRoute: typeof AppRoute
     }
   }
@@ -412,21 +719,45 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppAccountRoute: typeof AppAccountRoute
   AppDashboardRoute: typeof AppDashboardRoute
+  AppNotificationsRoute: typeof AppNotificationsRoute
+  AppScheduleRoute: typeof AppScheduleRoute
+  AppAdminAuditRoute: typeof AppAdminAuditRoute
+  AppAdminInstitutionsRoute: typeof AppAdminInstitutionsRoute
   AppAdminPhysiciansRoute: typeof AppAdminPhysiciansRoute
+  AppAdminReportsRoute: typeof AppAdminReportsRoute
+  AppAdminResourcesRoute: typeof AppAdminResourcesRoute
+  AppAdminSettingsRoute: typeof AppAdminSettingsRoute
   AppAdminUsersRoute: typeof AppAdminUsersRoute
   AppRequestsReferenceRoute: typeof AppRequestsReferenceRoute
+  AppStaffQueueRoute: typeof AppStaffQueueRoute
+  AppUrgentReferenceRoute: typeof AppUrgentReferenceRoute
+  AppUrgentNewRoute: typeof AppUrgentNewRoute
   AppRequestsIndexRoute: typeof AppRequestsIndexRoute
+  AppUrgentIndexRoute: typeof AppUrgentIndexRoute
   AppRequestsNewProcedureRoute: typeof AppRequestsNewProcedureRoute
+  AppStaffReviewReferenceRoute: typeof AppStaffReviewReferenceRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppAccountRoute: AppAccountRoute,
   AppDashboardRoute: AppDashboardRoute,
+  AppNotificationsRoute: AppNotificationsRoute,
+  AppScheduleRoute: AppScheduleRoute,
+  AppAdminAuditRoute: AppAdminAuditRoute,
+  AppAdminInstitutionsRoute: AppAdminInstitutionsRoute,
   AppAdminPhysiciansRoute: AppAdminPhysiciansRoute,
+  AppAdminReportsRoute: AppAdminReportsRoute,
+  AppAdminResourcesRoute: AppAdminResourcesRoute,
+  AppAdminSettingsRoute: AppAdminSettingsRoute,
   AppAdminUsersRoute: AppAdminUsersRoute,
   AppRequestsReferenceRoute: AppRequestsReferenceRoute,
+  AppStaffQueueRoute: AppStaffQueueRoute,
+  AppUrgentReferenceRoute: AppUrgentReferenceRoute,
+  AppUrgentNewRoute: AppUrgentNewRoute,
   AppRequestsIndexRoute: AppRequestsIndexRoute,
+  AppUrgentIndexRoute: AppUrgentIndexRoute,
   AppRequestsNewProcedureRoute: AppRequestsNewProcedureRoute,
+  AppStaffReviewReferenceRoute: AppStaffReviewReferenceRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -435,6 +766,7 @@ interface PublicRouteChildren {
   PublicBookingPolicyRoute: typeof PublicBookingPolicyRoute
   PublicContactRoute: typeof PublicContactRoute
   PublicHowItWorksRoute: typeof PublicHowItWorksRoute
+  PublicOfflineRoute: typeof PublicOfflineRoute
   PublicPrivacyRoute: typeof PublicPrivacyRoute
   PublicReferrersRoute: typeof PublicReferrersRoute
   PublicRequestRoute: typeof PublicRequestRoute
@@ -447,6 +779,7 @@ const PublicRouteChildren: PublicRouteChildren = {
   PublicBookingPolicyRoute: PublicBookingPolicyRoute,
   PublicContactRoute: PublicContactRoute,
   PublicHowItWorksRoute: PublicHowItWorksRoute,
+  PublicOfflineRoute: PublicOfflineRoute,
   PublicPrivacyRoute: PublicPrivacyRoute,
   PublicReferrersRoute: PublicReferrersRoute,
   PublicRequestRoute: PublicRequestRoute,
@@ -461,8 +794,11 @@ const PublicRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   PublicRoute: PublicRouteWithChildren,
+  ApiUploadRoute: ApiUploadRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   AuthSignInRoute: AuthSignInRoute,
+  AuthSignOutRoute: AuthSignOutRoute,
+  ApiFilesIdRoute: ApiFilesIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

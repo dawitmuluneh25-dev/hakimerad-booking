@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { useMutation } from "convex/react";
+import { api, useMutation } from "@/lib/api.ts";
 import { ShieldCheckIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button.tsx";
 import { Spinner } from "@/components/ui/spinner.tsx";
-import { api } from "@/convex/_generated/api.js";
 import { errorMessage } from "@/lib/errors.ts";
 
 /** Shown only while no administrator exists, so the owner can claim the first admin seat. */
@@ -18,7 +17,9 @@ export default function FirstAdminCard() {
       await claim({});
       toast.success("You are now the administrator");
     } catch (error) {
-      toast.error(errorMessage(error, "Could not set up the administrator account."));
+      toast.error(
+        errorMessage(error, "Could not set up the administrator account."),
+      );
     } finally {
       setPending(false);
     }
@@ -31,7 +32,8 @@ export default function FirstAdminCard() {
         <div className="space-y-1">
           <p className="font-medium">No administrator yet</p>
           <p className="text-sm text-muted-foreground">
-            If you run HakimeRAD, claim the administrator account now. This option disappears once an administrator exists.
+            If you run HakimeRAD, claim the administrator account now. This
+            option disappears once an administrator exists.
           </p>
         </div>
       </div>

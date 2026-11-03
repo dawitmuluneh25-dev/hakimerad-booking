@@ -3,7 +3,7 @@ import { ArrowLeftIcon, ShieldAlertIcon } from "lucide-react";
 import AppPage from "@/components/app-page.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty.tsx";
-import { PROCEDURE_LABELS, isReferralProcedure } from "@/convex/shared/referrals.ts";
+import { PROCEDURE_LABELS, isReferralProcedure } from "@/shared/referrals.ts";
 import { useMe } from "@/hooks/use-me.ts";
 import RequireRole from "../../-components/require-role.tsx";
 import ReferralForm from "../-components/referral-form.tsx";

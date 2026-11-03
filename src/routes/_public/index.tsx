@@ -16,8 +16,8 @@ import UrgentNotice from "@/components/urgent-notice.tsx";
 import { PROCEDURES } from "@/lib/procedures.ts";
 import { site } from "@/lib/site.ts";
 
-const HERO_IMAGE =
-  "https://hercules-cdn.com/cdn-cgi/image/w=1400,quality=80,fit=scale-down,format=auto/file_QpHX0Z5hDmrxINlo8dzQhMco";
+/** Local asset so the app has no third-party image/CDN dependency. */
+const HERO_IMAGE = "/hero-ultrasound.svg";
 
 const PRINCIPLES = [
   {

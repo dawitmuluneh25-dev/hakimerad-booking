@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ADULT_AGE, ageOn } from "@/convex/shared/referrals.ts";
+import { ADULT_AGE, ageOn } from "@/shared/referrals.ts";
 import { phoneSchema, requiredText } from "@/lib/form-schemas.ts";
 
 const optionalText = (max: number) => z.string().trim().max(max, `Must be ${max} characters or fewer`);

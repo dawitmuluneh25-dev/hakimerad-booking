@@ -3,7 +3,7 @@ import { AlertCircleIcon, CheckCircle2Icon, FileTextIcon, UploadIcon, XIcon } fr
 import { Button } from "@/components/ui/button.tsx";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select.tsx";
 import { Spinner } from "@/components/ui/spinner.tsx";
-import { DOCUMENT_KIND_LABELS, MAX_DOCUMENTS, type DocumentKind } from "@/convex/shared/referrals.ts";
+import { DOCUMENT_KIND_LABELS, MAX_DOCUMENTS, type DocumentKind } from "@/shared/referrals.ts";
 import type { DocumentUploads } from "@/hooks/use-document-uploads.ts";
 import { formatBytes } from "../-lib/format.ts";
 

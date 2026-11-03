@@ -1,11 +1,16 @@
 import { useRouter } from "@tanstack/react-router";
-import { AUTH_ERROR_PARAM } from "@usehercules/auth-tanstack";
 import { useEffect } from "react";
 import { toast } from "sonner";
+
+const AUTH_ERROR_PARAM = "auth_error";
 
 const AUTH_ERROR_MESSAGES: Record<string, string> = {
   access_denied: "Sign-in was cancelled.",
   sign_in_expired: "That sign-in expired. Please sign in again.",
+  state_mismatch: "That sign-in could not be verified. Please sign in again.",
+  missing_subject: "The provider did not return an account. Please try again.",
+  callback_failed: "Sign-in didn't complete. Please try again.",
+  not_configured: "Sign-in is not set up yet. Ask an administrator to configure it.",
 };
 
 /** Toasts why a sign-in failed (`?auth_error=`), then drops it from the URL. */

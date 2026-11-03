@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "convex/react";
+import { api, useMutation } from "@/lib/api.ts";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -16,8 +16,7 @@ import {
 import { Input } from "@/components/ui/input.tsx";
 import { Spinner } from "@/components/ui/spinner.tsx";
 import { Textarea } from "@/components/ui/textarea.tsx";
-import { api } from "@/convex/_generated/api.js";
-import type { Doc } from "@/convex/_generated/dataModel";
+import type { PhysicianProfile } from "@/server/types.ts";
 import { errorMessage } from "@/lib/errors.ts";
 import { phoneSchema, requiredText } from "@/lib/form-schemas.ts";
 
@@ -32,13 +31,39 @@ const schema = z.object({
 });
 type Values = z.infer<typeof schema>;
 
-const FIELDS: Array<{ name: Exclude<keyof Values, "facilityAddress">; label: string; placeholder: string; type?: string }> = [
-  { name: "fullName", label: "Full name (as registered)", placeholder: "Dr. Abebe Kebede" },
-  { name: "registrationNumber", label: "Medical registration number", placeholder: "MD-012345" },
-  { name: "licensingBody", label: "Licensing body", placeholder: "Ministry of Health" },
+const FIELDS: Array<{
+  name: Exclude<keyof Values, "facilityAddress">;
+  label: string;
+  placeholder: string;
+  type?: string;
+}> = [
+  {
+    name: "fullName",
+    label: "Full name (as registered)",
+    placeholder: "Dr. Abebe Kebede",
+  },
+  {
+    name: "registrationNumber",
+    label: "Medical registration number",
+    placeholder: "MD-012345",
+  },
+  {
+    name: "licensingBody",
+    label: "Licensing body",
+    placeholder: "Ministry of Health",
+  },
   { name: "specialty", label: "Specialty", placeholder: "Internal medicine" },
-  { name: "facilityName", label: "Hospital or facility", placeholder: "St. Mary General Hospital" },
-  { name: "phone", label: "Work phone", placeholder: "+251 911 234 567", type: "tel" },
+  {
+    name: "facilityName",
+    label: "Hospital or facility",
+    placeholder: "St. Mary General Hospital",
+  },
+  {
+    name: "phone",
+    label: "Work phone",
+    placeholder: "+251 911 234 567",
+    type: "tel",
+  },
 ];
 
 export default function PhysicianProfileForm({
@@ -47,7 +72,7 @@ export default function PhysicianProfileForm({
   defaultPhone,
   onDone,
 }: {
-  profile: Doc<"physicianProfiles"> | null;
+  profile: PhysicianProfile | null;
   defaultName: string;
   defaultPhone: string;
   onDone?: () => void;
@@ -93,7 +118,11 @@ export default function PhysicianProfileForm({
                 <FormItem>
                   <FormLabel>{f.label}</FormLabel>
                   <FormControl>
-                    <Input placeholder={f.placeholder} type={f.type} {...field} />
+                    <Input
+                      placeholder={f.placeholder}
+                      type={f.type}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -108,14 +137,19 @@ export default function PhysicianProfileForm({
             <FormItem>
               <FormLabel>Facility address</FormLabel>
               <FormControl>
-                <Textarea rows={2} placeholder="Street, city, region" {...field} />
+                <Textarea
+                  rows={2}
+                  placeholder="Street, city, region"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
         <p className="text-xs text-muted-foreground">
-          An administrator checks these details before you can submit referrals. Editing them later sends your profile back for verification.
+          An administrator checks these details before you can submit referrals.
+          Editing them later sends your profile back for verification.
         </p>
         <Button type="submit" disabled={pending}>
           {pending ? <Spinner /> : null}

@@ -4,7 +4,7 @@ import Logo from "@/components/logo.tsx";
 import ThemeToggle from "@/components/theme-toggle.tsx";
 import { Badge } from "@/components/ui/badge.tsx";
 import { SignInButton } from "@/components/ui/signin.tsx";
-import { ROLE_LABELS, type Role } from "@/convex/shared/roles.ts";
+import { ROLE_LABELS, type Role } from "@/shared/roles.ts";
 import { navForRole } from "@/lib/app-nav.ts";
 
 /** Sidebar on desktop, bottom tab bar on mobile. */
@@ -30,7 +30,10 @@ export default function AppShell({
               key={item.to}
               to={item.to}
               className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              activeProps={{ className: "bg-primary/10 text-primary font-medium hover:bg-primary/10 hover:text-primary" }}
+              activeProps={{
+                className:
+                  "bg-primary/10 text-primary font-medium hover:bg-primary/10 hover:text-primary",
+              }}
             >
               <item.icon className="size-4" />
               {item.label}
@@ -39,7 +42,9 @@ export default function AppShell({
         </nav>
         <div className="space-y-3 border-t p-4">
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium">{name || "Your account"}</p>
+            <p className="truncate text-sm font-medium">
+              {name || "Your account"}
+            </p>
             {role ? (
               <Badge variant="secondary" className="mt-1">
                 {ROLE_LABELS[role]}

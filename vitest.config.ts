@@ -1,12 +1,35 @@
-import { defineVitestConfig } from "@usehercules/vite-tanstack/vitest";
+import { fileURLToPath } from "node:url";
+import react from "@vitejs/plugin-react";
+import { defineConfig } from "vitest/config";
 
-// Two projects: "convex" (edge-runtime with convex-test) and "frontend"
-// (jsdom with Testing Library). Keep tests hermetic: no real deployments or
-// network calls.
-//
-// `testTimeout` is raised from Vitest's 5s default: the first `convex-test`
-// case in a file builds a fresh in-memory backend and can take 5-8s on a cold
-// transform cache or a slower local disk, which shows up as a false timeout.
-export default defineVitestConfig({
-  vitest: { test: { testTimeout: 20_000 } },
+const srcAlias = { "@": fileURLToPath(new URL("./src", import.meta.url)) };
+
+export default defineConfig({
+  resolve: { alias: srcAlias },
+  test: {
+    passWithNoTests: true,
+    restoreMocks: true,
+    // The first case in a file opens a fresh SQLite database and migrates it.
+    testTimeout: 20_000,
+    projects: [
+      {
+        resolve: { alias: srcAlias },
+        test: {
+          name: "server",
+          environment: "node",
+          include: ["src/server/**/*.test.ts"],
+        },
+      },
+      {
+        plugins: [react()],
+        resolve: { alias: srcAlias },
+        test: {
+          name: "frontend",
+          environment: "jsdom",
+          include: ["src/**/*.test.tsx"],
+          setupFiles: ["./src/vitest.setup.ts"],
+        },
+      },
+    ],
+  },
 });
