@@ -62,6 +62,38 @@ export function getFileMeta(db: Db, id: string): FileMeta | null {
   return row ? toMeta(row) : null;
 }
 
+const STAFF_ROLES = ["receptionist", "radiologist", "coordinator", "admin"];
+
+/**
+ * Whether a signed-in user may read a stored file: the uploader, the submitter
+ * of the request the file is attached to, or a staff member. Everyone else is
+ * treated as if the file does not exist (the route returns 404, not 403).
+ */
+export function canReadFile(
+  db: Db,
+  user: { id: string; role: string | null },
+  fileId: string,
+): boolean {
+  const meta = getFileMeta(db, fileId);
+  if (!meta) return false;
+  if (meta.uploadedById === user.id) return true;
+  if (user.role && STAFF_ROLES.includes(user.role)) return true;
+
+  const attached = getRow<{ referral_id: string }>(
+    db,
+    "SELECT referral_id FROM referral_documents WHERE storage_id = ?",
+    meta.id,
+  );
+  if (!attached) return false;
+
+  const owner = getRow<{ submitted_by_id: string }>(
+    db,
+    "SELECT submitted_by_id FROM referrals WHERE id = ?",
+    attached.referral_id,
+  );
+  return owner?.submitted_by_id === user.id;
+}
+
 export function readFile(id: string): Uint8Array {
   try {
     return readFileSync(filePathFor(id));

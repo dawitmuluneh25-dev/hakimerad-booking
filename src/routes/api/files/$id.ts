@@ -4,14 +4,18 @@ export const Route = createFileRoute("/api/files/$id")({
   server: {
     handlers: {
       // Streams a private document back to its uploader, the request's
-      // submitter, or staff. Everything else is a 404.
+      // submitter, or staff. Everyone else gets a 404, so the endpoint never
+      // confirms that a file exists.
       GET: async ({ request, params }) => {
-        const [{ getDb, getRow }, { identityFromSessionToken, readCookie, SESSION_COOKIE }, { getFileMeta, readFile }] =
-          await Promise.all([
-            import("@/server/db.ts"),
-            import("@/server/auth.ts"),
-            import("@/server/storage.ts"),
-          ]);
+        const [
+          { getDb, getRow },
+          { identityFromSessionToken, readCookie, SESSION_COOKIE },
+          { canReadFile, getFileMeta, readFile },
+        ] = await Promise.all([
+          import("@/server/db.ts"),
+          import("@/server/auth.ts"),
+          import("@/server/storage.ts"),
+        ]);
 
         const identity = identityFromSessionToken(
           readCookie(request.headers.get("cookie"), SESSION_COOKIE),
@@ -27,26 +31,9 @@ export const Route = createFileRoute("/api/files/$id")({
         if (!user) return new Response("Not found", { status: 404 });
 
         const meta = getFileMeta(db, params.id);
-        if (!meta) return new Response("Not found", { status: 404 });
-
-        const attached = getRow<{ referral_id: string }>(
-          db,
-          "SELECT referral_id FROM referral_documents WHERE storage_id = ?",
-          meta.id,
-        );
-        const isStaff = ["receptionist", "radiologist", "coordinator", "admin"].includes(
-          user.role ?? "",
-        );
-        let allowed = meta.uploadedById === user.id || isStaff;
-        if (!allowed && attached) {
-          const owner = getRow<{ submitted_by_id: string }>(
-            db,
-            "SELECT submitted_by_id FROM referrals WHERE id = ?",
-            attached.referral_id,
-          );
-          allowed = owner?.submitted_by_id === user.id;
+        if (!meta || !canReadFile(db, user, meta.id)) {
+          return new Response("Not found", { status: 404 });
         }
-        if (!allowed) return new Response("Not found", { status: 404 });
 
         // Node's Uint8Array is a valid body at runtime; the DOM lib type is narrower.
         return new Response(readFile(meta.id) as unknown as BodyInit, {

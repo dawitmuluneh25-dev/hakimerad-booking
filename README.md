@@ -121,6 +121,10 @@ src/shared/        pure constants shared by server and UI
 - `src/server/services/workflow.test.ts` — clinical review permissions and
   checklist gating, information requests, booking conflicts and closing-time
   limits, cancellation, urgent-case sequencing, preparation permissions, reports.
+- `src/server/auth.test.ts` — session sealing, tampering, expiry, cookie flags,
+  return-path validation, forwarded-origin handling.
+- `src/server/storage.test.ts` — the private document permission matrix
+  (uploader, request owner, staff, unrelated patient) and upload attachment rules.
 
 ## Screens
 
@@ -146,3 +150,20 @@ blocked while the browser reports no connection.
 
 Add a test for every permission rule, status transition and booking-conflict
 rule you introduce.
+
+## Local test sign-in (no identity provider)
+
+With `AUTH_DEV_LOGIN=1` in `.env.local` and a dev server running, this mints a
+session for a role so the staff screens can be walked through:
+
+```text
+http://localhost:5173/auth/dev-login?role=radiologist&subject=radio
+http://localhost:5173/auth/dev-login?role=receptionist&subject=desk
+http://localhost:5173/auth/dev-login?role=admin&subject=admin
+```
+
+`role` accepts any role in `src/shared/roles.ts`; `subject` names the account;
+optional `returnTo=/staff/queue` picks the landing page. The route returns **404**
+unless the flag is set and `NODE_ENV` is not `production`, so it cannot be used
+against a deployed build. It creates or updates the local user row, which is
+what makes it a test tool rather than a sign-in path.

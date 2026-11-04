@@ -25,6 +25,7 @@ import { Route as PublicReferrersRouteImport } from './routes/_public/referrers'
 import { Route as PublicRequestRouteImport } from './routes/_public/request'
 import { Route as ApiUploadRouteImport } from './routes/api/upload'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
+import { Route as AuthDevLoginRouteImport } from './routes/auth/dev-login'
 import { Route as AuthSignInRouteImport } from './routes/auth/sign-in'
 import { Route as AuthSignOutRouteImport } from './routes/auth/sign-out'
 import { Route as AppAdminAuditRouteImport } from './routes/_app/admin/audit'
@@ -122,6 +123,11 @@ const ApiUploadRoute = ApiUploadRouteImport.update({
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
   path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthDevLoginRoute = AuthDevLoginRouteImport.update({
+  id: '/auth/dev-login',
+  path: '/auth/dev-login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthSignInRoute = AuthSignInRouteImport.update({
@@ -240,6 +246,7 @@ export interface FileRoutesByFullPath {
   '/request': typeof PublicRequestRoute
   '/api/upload': typeof ApiUploadRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/auth/dev-login': typeof AuthDevLoginRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-out': typeof AuthSignOutRoute
   '/admin/audit': typeof AppAdminAuditRoute
@@ -276,6 +283,7 @@ export interface FileRoutesByTo {
   '/request': typeof PublicRequestRoute
   '/api/upload': typeof ApiUploadRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/auth/dev-login': typeof AuthDevLoginRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-out': typeof AuthSignOutRoute
   '/admin/audit': typeof AppAdminAuditRoute
@@ -314,6 +322,7 @@ export interface FileRoutesById {
   '/_public/request': typeof PublicRequestRoute
   '/api/upload': typeof ApiUploadRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/auth/dev-login': typeof AuthDevLoginRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-out': typeof AuthSignOutRoute
   '/_public/': typeof PublicIndexRoute
@@ -353,6 +362,7 @@ export interface FileRouteTypes {
     | '/request'
     | '/api/upload'
     | '/auth/callback'
+    | '/auth/dev-login'
     | '/auth/sign-in'
     | '/auth/sign-out'
     | '/admin/audit'
@@ -389,6 +399,7 @@ export interface FileRouteTypes {
     | '/request'
     | '/api/upload'
     | '/auth/callback'
+    | '/auth/dev-login'
     | '/auth/sign-in'
     | '/auth/sign-out'
     | '/admin/audit'
@@ -426,6 +437,7 @@ export interface FileRouteTypes {
     | '/_public/request'
     | '/api/upload'
     | '/auth/callback'
+    | '/auth/dev-login'
     | '/auth/sign-in'
     | '/auth/sign-out'
     | '/_public/'
@@ -454,6 +466,7 @@ export interface RootRouteChildren {
   PublicRoute: typeof PublicRouteWithChildren
   ApiUploadRoute: typeof ApiUploadRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  AuthDevLoginRoute: typeof AuthDevLoginRoute
   AuthSignInRoute: typeof AuthSignInRoute
   AuthSignOutRoute: typeof AuthSignOutRoute
   ApiFilesIdRoute: typeof ApiFilesIdRoute
@@ -571,6 +584,13 @@ declare module '@tanstack/react-router' {
       path: '/auth/callback'
       fullPath: '/auth/callback'
       preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/dev-login': {
+      id: '/auth/dev-login'
+      path: '/auth/dev-login'
+      fullPath: '/auth/dev-login'
+      preLoaderRoute: typeof AuthDevLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/sign-in': {
@@ -796,6 +816,7 @@ const rootRouteChildren: RootRouteChildren = {
   PublicRoute: PublicRouteWithChildren,
   ApiUploadRoute: ApiUploadRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  AuthDevLoginRoute: AuthDevLoginRoute,
   AuthSignInRoute: AuthSignInRoute,
   AuthSignOutRoute: AuthSignOutRoute,
   ApiFilesIdRoute: ApiFilesIdRoute,

@@ -205,14 +205,18 @@ export function validateDocuments(
   if (docs.length + existingCount > MAX_DOCUMENTS) {
     bad(`A request can have at most ${MAX_DOCUMENTS} documents.`);
   }
+  const user = requireUser(ctx);
   const seen = new Set<string>();
   const cleaned: DocumentInput[] = [];
   for (const doc of docs) {
     if (seen.has(doc.storageId)) bad("The same file was attached twice.");
     seen.add(doc.storageId);
     const meta = getFileMeta(ctx.db, doc.storageId);
-    if (!meta)
+    // Only the uploader can attach their own upload: a known id from another
+    // account must not be attachable to a request.
+    if (!meta || (meta.uploadedById !== null && meta.uploadedById !== user.id)) {
       bad("An uploaded file could not be found. Please upload it again.");
+    }
     // Fall back to the extension when the upload carried no content type.
     const contentType =
       meta.contentType ||
