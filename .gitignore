@@ -54,3 +54,6 @@ tsconfig.tsbuildinfo
 /.ripgreprc
 /.zprofile
 /.zshrc
+
+# Local browser-review screenshots
+/preview-shots/

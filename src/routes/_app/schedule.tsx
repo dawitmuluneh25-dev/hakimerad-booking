@@ -1,22 +1,10 @@
 import { useMemo, useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { addDays, format, startOfWeek } from "date-fns";
-import {
-  CalendarDaysIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  PlusIcon,
-} from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon, PlusIcon } from "lucide-react";
 import { toast } from "sonner";
 import AppPage from "@/components/app-page.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty.tsx";
 import { Input } from "@/components/ui/input.tsx";
 import { Label } from "@/components/ui/label.tsx";
 import {
@@ -362,20 +350,6 @@ function SchedulePage() {
             ) : null}
           </DetailCard>
         </div>
-
-        {appointments !== undefined && appointments.length === 0 ? (
-          <Empty className="rounded-xl border bg-background">
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <CalendarDaysIcon />
-              </EmptyMedia>
-              <EmptyTitle>No appointments this week</EmptyTitle>
-              <EmptyDescription>
-                Book an approved request, or move to another week.
-              </EmptyDescription>
-            </EmptyHeader>
-          </Empty>
-        ) : null}
       </div>
     </AppPage>
   );
