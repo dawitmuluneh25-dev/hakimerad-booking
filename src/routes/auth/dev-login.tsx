@@ -11,7 +11,8 @@ export const Route = createFileRoute("/auth/dev-login")({
         const { devLoginResponse } = await import("@/server/dev-login.ts");
         return devLoginResponse(request);
       },
-      ANY: () => new Response(null, { status: 405, headers: { allow: "GET, HEAD" } }),
+      ANY: () =>
+        new Response(null, { status: 405, headers: { allow: "GET, HEAD" } }),
     },
   },
 });

@@ -1,5 +1,10 @@
 import { ROLES, type Role } from "@/shared/roles.ts";
-import { clearSessionCookie, safeReturnTo, serializeSession, sessionCookie } from "./auth.ts";
+import {
+  clearSessionCookie,
+  safeReturnTo,
+  serializeSession,
+  sessionCookie,
+} from "./auth.ts";
 import { getDb, getRow, newId, run } from "./db.ts";
 
 /**
@@ -24,14 +29,18 @@ function badRequest(message: string): Response {
 }
 
 export function devLoginEnabled(): boolean {
-  return process.env.NODE_ENV !== "production" && process.env.AUTH_DEV_LOGIN === "1";
+  return (
+    process.env.NODE_ENV !== "production" && process.env.AUTH_DEV_LOGIN === "1"
+  );
 }
 
 export async function devLoginResponse(request: Request): Promise<Response> {
   if (!devLoginEnabled()) return disabled();
 
   const url = new URL(request.url);
-  const subject = (url.searchParams.get("subject") ?? "dev-admin").trim().toLowerCase();
+  const subject = (url.searchParams.get("subject") ?? "dev-admin")
+    .trim()
+    .toLowerCase();
   if (!SUBJECT.test(subject)) {
     return badRequest("subject must be 1-40 characters of a-z, 0-9, - or _");
   }
@@ -41,7 +50,9 @@ export async function devLoginResponse(request: Request): Promise<Response> {
     return badRequest(`role must be one of: ${ROLES.join(", ")}`);
   }
 
-  const name = (url.searchParams.get("name") ?? `Dev ${role}`).trim().slice(0, 80) || `Dev ${role}`;
+  const name =
+    (url.searchParams.get("name") ?? `Dev ${role}`).trim().slice(0, 80) ||
+    `Dev ${role}`;
   const email = `${subject}@dev.local`;
   const tokenIdentifier = `${DEV_ISSUER}|${subject}`;
 

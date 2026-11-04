@@ -14,13 +14,18 @@ let ownerFileId: string;
 let orphanFileId: string;
 
 function setRole(subject: string, role: string) {
-  run(db, "UPDATE users SET role = ? WHERE token_identifier = ?", role, `test|${subject}`);
+  run(
+    db,
+    "UPDATE users SET role = ? WHERE token_identifier = ?",
+    role,
+    `test|${subject}`,
+  );
 }
 
 function userId(subject: string): string {
-  const row = db.prepare("SELECT id FROM users WHERE token_identifier = ?").get(`test|${subject}`) as
-    | { id: string }
-    | undefined;
+  const row = db
+    .prepare("SELECT id FROM users WHERE token_identifier = ?")
+    .get(`test|${subject}`) as { id: string } | undefined;
   if (!row) throw new Error(`missing user ${subject}`);
   return row.id;
 }
@@ -74,7 +79,13 @@ beforeEach(() => {
       bloodThinners: "no",
     },
     imaging: { modality: "ultrasound" },
-    documents: [{ storageId: ownerFileId, fileName: "referral.pdf", kind: "referral_letter" }],
+    documents: [
+      {
+        storageId: ownerFileId,
+        fileName: "referral.pdf",
+        kind: "referral_letter",
+      },
+    ],
     confirmNotAppointment: true,
   });
 });
@@ -83,20 +94,34 @@ afterEach(() => dispose());
 
 describe("private document access", () => {
   it("lets the uploader read the file", () => {
-    expect(canReadFile(db, { id: userId("pat"), role: "patient" }, ownerFileId)).toBe(true);
+    expect(
+      canReadFile(db, { id: userId("pat"), role: "patient" }, ownerFileId),
+    ).toBe(true);
   });
 
   it("refuses an unrelated patient", () => {
-    expect(canReadFile(db, { id: userId("other"), role: "patient" }, ownerFileId)).toBe(false);
+    expect(
+      canReadFile(db, { id: userId("other"), role: "patient" }, ownerFileId),
+    ).toBe(false);
   });
 
   it("lets staff read any document", () => {
-    expect(canReadFile(db, { id: userId("radio"), role: "radiologist" }, ownerFileId)).toBe(true);
-    expect(canReadFile(db, { id: userId("admin"), role: "admin" }, orphanFileId)).toBe(true);
+    expect(
+      canReadFile(
+        db,
+        { id: userId("radio"), role: "radiologist" },
+        ownerFileId,
+      ),
+    ).toBe(true);
+    expect(
+      canReadFile(db, { id: userId("admin"), role: "admin" }, orphanFileId),
+    ).toBe(true);
   });
 
   it("treats unknown files as absent", () => {
-    expect(canReadFile(db, { id: userId("admin"), role: "admin" }, "does-not-exist")).toBe(false);
+    expect(
+      canReadFile(db, { id: userId("admin"), role: "admin" }, "does-not-exist"),
+    ).toBe(false);
   });
 });
 
@@ -127,7 +152,13 @@ describe("attaching uploads", () => {
           bloodThinners: "no",
         },
         imaging: { modality: "ultrasound" },
-        documents: [{ storageId: orphanFileId, fileName: "xray.png", kind: "imaging_report" }],
+        documents: [
+          {
+            storageId: orphanFileId,
+            fileName: "xray.png",
+            kind: "imaging_report",
+          },
+        ],
         confirmNotAppointment: true,
       }),
     ).toThrowError(/could not be found/i);

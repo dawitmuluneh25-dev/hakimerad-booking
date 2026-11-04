@@ -52,7 +52,10 @@ describe("session cookie sealing", () => {
 
   it("rejects a token sealed with another secret", () => {
     const token = serializeSession(payload());
-    vi.stubEnv("AUTH_COOKIE_SECRET", "a-completely-different-secret-value-0002");
+    vi.stubEnv(
+      "AUTH_COOKIE_SECRET",
+      "a-completely-different-secret-value-0002",
+    );
     expect(parseSession(token)).toBeNull();
   });
 
@@ -117,7 +120,9 @@ describe("cookie headers", () => {
 describe("return paths", () => {
   it("only allows same-origin paths and never an auth route", () => {
     expect(safeReturnTo("/staff/queue")).toBe("/staff/queue");
-    expect(safeReturnTo("/requests/BX-260104-AB12?x=1")).toBe("/requests/BX-260104-AB12?x=1");
+    expect(safeReturnTo("/requests/BX-260104-AB12?x=1")).toBe(
+      "/requests/BX-260104-AB12?x=1",
+    );
     expect(safeReturnTo(null)).toBe("/");
     expect(safeReturnTo("https://evil.test")).toBe("/");
     expect(safeReturnTo("//evil.test")).toBe("/");
@@ -128,16 +133,26 @@ describe("return paths", () => {
 describe("origin handling behind a proxy", () => {
   it("uses the forwarded host and protocol", () => {
     const request = new Request("http://internal:3000/auth/callback", {
-      headers: { "x-forwarded-host": "booking.example.test", "x-forwarded-proto": "https" },
+      headers: {
+        "x-forwarded-host": "booking.example.test",
+        "x-forwarded-proto": "https",
+      },
     });
     expect(originOf(request)).toBe("https://booking.example.test");
-    expect(redirectUri(request)).toBe("https://booking.example.test/auth/callback");
+    expect(redirectUri(request)).toBe(
+      "https://booking.example.test/auth/callback",
+    );
   });
 
   it("prefers an explicit AUTH_REDIRECT_URI", () => {
-    vi.stubEnv("AUTH_REDIRECT_URI", "https://booking.example.test/auth/callback");
+    vi.stubEnv(
+      "AUTH_REDIRECT_URI",
+      "https://booking.example.test/auth/callback",
+    );
     const request = new Request("http://localhost:5173/auth/callback");
-    expect(redirectUri(request)).toBe("https://booking.example.test/auth/callback");
+    expect(redirectUri(request)).toBe(
+      "https://booking.example.test/auth/callback",
+    );
     expect(originOf(request)).toBe("https://booking.example.test");
   });
 });
