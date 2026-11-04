@@ -11,6 +11,7 @@ import PublicPage from "@/components/public-page.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { SignInButton } from "@/components/ui/signin.tsx";
 import { useAuth } from "@/hooks/use-auth.ts";
+import { pageHead } from "@/lib/seo.ts";
 import { site } from "@/lib/site.ts";
 
 const FEATURES = [
@@ -23,12 +24,13 @@ const FEATURES = [
 ];
 
 export const Route = createFileRoute("/_public/referrers")({
-  head: () => ({
-    meta: [
-      { title: `For referring doctors | ${site.name}` },
-      { name: "description", content: "Referral portal for physicians, hospitals and healthcare facilities." },
-    ],
-  }),
+  head: () =>
+    pageHead({
+      title: `For referring doctors | ${site.name}`,
+      description:
+        "Referral portal for physicians, hospitals and healthcare facilities.",
+      path: "/referrers",
+    }),
   component: ReferrersPage,
 });
 

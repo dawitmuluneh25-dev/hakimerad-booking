@@ -190,8 +190,21 @@ export const submitReferral = createServerFn({ method: "POST" })
       .parse(data),
   )
   .handler(async ({ data }) => {
-    const { runWithCtx, services } = await import("./runtime.ts");
-    return runWithCtx((ctx) => services.referrals.submit(ctx, data as never));
+    const { currentCtx, services } = await import("./runtime.ts");
+    const { consume, limitMessage } = await import("./rate-limit.ts");
+    const ctx = currentCtx();
+
+    // A submission writes rows, files and notifications, so it is throttled per
+    // account. Signed-out callers get the same message as the service rejects
+    // them with, rather than a separate code path.
+    const verdict = consume("referral.submit", ctx.identity?.tokenIdentifier ?? "anonymous");
+    if (!verdict.ok) {
+      const { setResponseStatus } = await import("@tanstack/react-start/server");
+      setResponseStatus(429);
+      throw new Error(limitMessage(verdict.retryAfterSeconds));
+    }
+
+    return services.referrals.submit(ctx, data as never);
   });
 
 export const listMyReferrals = createServerFn({ method: "GET" })

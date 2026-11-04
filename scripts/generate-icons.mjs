@@ -3,85 +3,13 @@
  * node:zlib. Run `node scripts/generate-icons.mjs` after changing the mark.
  *
  * The artwork is the official HakimeRAD mark from hakimerad.com — a broken ring
- * with a 2x2 grid of squares (navy #0a2540 tile, white ring, blue/cyan squares),
- * the same composition as the site's favicon.svg. Geometry is copied verbatim
- * from the site's inline header SVG (viewBox 0 0 375 323).
+ * with a 2x2 grid of squares. The geometry lives in `scripts/lib/mark.mjs` so the
+ * social preview card can reuse it.
  */
-import { deflateSync } from "node:zlib";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-
-const NAVY = [10, 37, 64, 255]; // #0a2540
-const WHITE = [255, 255, 255, 255];
-const BLUE = [0, 119, 182, 255]; // #0077b6
-const CYAN = [0, 180, 216, 255]; // #00b4d8
-const CLEAR = [0, 0, 0, 0];
-
-// Mark geometry, in the site's own coordinate space.
-const MARK_W = 375;
-const MARK_H = 323;
-const RING = { cx: 151.08, cy: 161.5, radius: 135.75, stroke: 51.5 };
-// The ring is drawn as four arcs; these are the four gaps between them, in
-// degrees clockwise from the positive x axis.
-const GAPS = [
-  [81.2, 90.1],
-  [175.1, 184.9],
-  [269.9, 278.8],
-  [330, 30.3],
-];
-const SQUARES = [
-  { x: 243, y: 95.5, size: 60, radius: 12, colour: BLUE },
-  { x: 315, y: 95.5, size: 60, radius: 12, colour: CYAN },
-  { x: 243, y: 167.5, size: 60, radius: 12, colour: CYAN },
-  { x: 315, y: 167.5, size: 60, radius: 12, colour: BLUE },
-];
-
-const SUPERSAMPLE = 4;
-
-function crc32(buffer) {
-  let crc = 0xffffffff;
-  for (const byte of buffer) {
-    crc ^= byte;
-    for (let i = 0; i < 8; i += 1) {
-      crc = crc & 1 ? (crc >>> 1) ^ 0xedb88320 : crc >>> 1;
-    }
-  }
-  return (crc ^ 0xffffffff) >>> 0;
-}
-
-function chunk(type, data) {
-  const length = Buffer.alloc(4);
-  length.writeUInt32BE(data.length, 0);
-  const typeBuffer = Buffer.from(type, "ascii");
-  const body = Buffer.concat([typeBuffer, data]);
-  const crc = Buffer.alloc(4);
-  crc.writeUInt32BE(crc32(body), 0);
-  return Buffer.concat([length, body, crc]);
-}
-
-function encodePng(width, height, pixels) {
-  const header = Buffer.alloc(13);
-  header.writeUInt32BE(width, 0);
-  header.writeUInt32BE(height, 4);
-  header[8] = 8; // bit depth
-  header[9] = 6; // RGBA
-  const raw = Buffer.alloc((width * 4 + 1) * height);
-  for (let y = 0; y < height; y += 1) {
-    raw[y * (width * 4 + 1)] = 0; // no filter
-    pixels.copy(
-      raw,
-      y * (width * 4 + 1) + 1,
-      y * width * 4,
-      (y + 1) * width * 4,
-    );
-  }
-  return Buffer.concat([
-    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
-    chunk("IHDR", header),
-    chunk("IDAT", deflateSync(raw, { level: 9 })),
-    chunk("IEND", Buffer.alloc(0)),
-  ]);
-}
+import { CLEAR, MARK_H, MARK_W, NAVY, clamp, markColour } from "./lib/mark.mjs";
+import { encodePng } from "./lib/png.mjs";
 
 /** Windows .ico container holding one PNG-compressed 32-bit image. */
 function encodeIco(png, size) {
@@ -101,40 +29,7 @@ function encodeIco(png, size) {
   return Buffer.concat([header, entry, png]);
 }
 
-const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
-
-function inGap(angle) {
-  return GAPS.some(([from, to]) =>
-    from < to ? angle > from && angle < to : angle > from || angle < to,
-  );
-}
-
-/** Colour at one supersampled pixel, in mark coordinates (mx, my). */
-function markColour(mx, my) {
-  for (const square of SQUARES) {
-    if (
-      mx < square.x ||
-      mx > square.x + square.size ||
-      my < square.y ||
-      my > square.y + square.size
-    )
-      continue;
-    const cx = clamp(mx, square.x + square.radius, square.x + square.size - square.radius);
-    const cy = clamp(my, square.y + square.radius, square.y + square.size - square.radius);
-    if ((mx - cx) ** 2 + (my - cy) ** 2 <= square.radius ** 2) return square.colour;
-  }
-
-  const dx = mx - RING.cx;
-  const dy = my - RING.cy;
-  const distance = Math.hypot(dx, dy);
-  const half = RING.stroke / 2;
-  if (distance >= RING.radius - half && distance <= RING.radius + half) {
-    let angle = (Math.atan2(dy, dx) * 180) / Math.PI;
-    if (angle < 0) angle += 360;
-    if (!inGap(angle)) return WHITE;
-  }
-  return null;
-}
+const SUPERSAMPLE = 4;
 
 function drawIcon(size, { maskable = false } = {}) {
   const width = size * SUPERSAMPLE;

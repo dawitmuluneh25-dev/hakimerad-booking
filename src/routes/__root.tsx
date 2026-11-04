@@ -18,8 +18,15 @@ import { Toaster } from "@/components/ui/sonner.tsx";
 import { TooltipProvider } from "@/components/ui/tooltip.tsx";
 import { useAuthErrorToast } from "@/hooks/use-auth-error-toast.ts";
 import { getSession } from "@/server/api.ts";
+import { OG_IMAGE, absoluteUrl, structuredData } from "@/lib/seo.ts";
 import { site } from "@/lib/site.ts";
 import appCss from "@/index.css?url";
+
+/** Rendered once per document: search engines read it from `<head>`. */
+const STRUCTURED_DATA = JSON.stringify(structuredData());
+
+/** Absolute preview image, or null until VITE_SITE_URL names the deployment. */
+const SHARE_IMAGE = absoluteUrl(OG_IMAGE.path);
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   {
@@ -36,8 +43,27 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         { title: site.name },
         { name: "description", content: site.tagline },
         { name: "theme-color", content: "#0a2540" },
+        { property: "og:type", content: "website" },
+        { property: "og:site_name", content: site.organization },
         { property: "og:title", content: site.name },
         { property: "og:description", content: site.tagline },
+        // Absolute URLs need VITE_SITE_URL; without it these are left out rather
+        // than pointing a preview card at the wrong host.
+        ...(SHARE_IMAGE
+          ? [
+              { property: "og:image", content: SHARE_IMAGE },
+              { property: "og:image:width", content: String(OG_IMAGE.width) },
+              { property: "og:image:height", content: String(OG_IMAGE.height) },
+              {
+                property: "og:image:alt",
+                content: `${site.name} — the HakimeRAD mark on a navy card`,
+              },
+            ]
+          : []),
+        { name: "twitter:card", content: SHARE_IMAGE ? "summary_large_image" : "summary" },
+        { name: "twitter:title", content: site.name },
+        { name: "twitter:description", content: site.tagline },
+        ...(SHARE_IMAGE ? [{ name: "twitter:image", content: SHARE_IMAGE }] : []),
       ],
       links: [
         { rel: "icon", href: "/favicon.ico", sizes: "any" },
@@ -80,6 +106,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
+        <script
+          type="application/ld+json"
+          // Static, build-time content: no user data reaches this script.
+          dangerouslySetInnerHTML={{ __html: STRUCTURED_DATA }}
+        />
       </head>
       <body>
         <ThemeProvider>

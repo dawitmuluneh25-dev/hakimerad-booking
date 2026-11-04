@@ -4,7 +4,13 @@ export const Route = createFileRoute("/auth/sign-in")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        const { authConfig, createSignInRedirect, safeReturnTo } = await import("@/server/auth.ts");
+        const [{ authConfig, createSignInRedirect, safeReturnTo }, { enforce }] =
+          await Promise.all([import("@/server/auth.ts"), import("@/server/rate-limit.ts")]);
+
+        // Unauthenticated, so the client address is the only stable subject.
+        const limited = enforce("auth.sign-in", request);
+        if (limited) return limited;
+
         const config = authConfig();
         if (!config) {
           return new Response(

@@ -26,7 +26,7 @@ export default function SiteHeader() {
               key={item.to}
               to={item.to}
               className="cursor-pointer rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-              activeProps={{ className: "text-foreground font-medium" }}
+              activeProps={{ className: "text-foreground font-medium", "aria-current": "page" }}
             >
               {item.label}
             </Link>
@@ -74,6 +74,7 @@ export default function SiteHeader() {
                     key={item.to}
                     to={item.to}
                     className="cursor-pointer rounded-md px-3 py-2.5 text-sm hover:bg-muted"
+                    activeProps={{ "aria-current": "page", className: "bg-muted font-medium" }}
                   >
                     {item.label}
                   </Link>

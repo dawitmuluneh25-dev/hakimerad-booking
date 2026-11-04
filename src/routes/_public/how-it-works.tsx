@@ -3,6 +3,7 @@ import FaqList from "@/components/faq-list.tsx";
 import PublicPage from "@/components/public-page.tsx";
 import ReferralSteps from "@/components/referral-steps.tsx";
 import UrgentNotice from "@/components/urgent-notice.tsx";
+import { pageHead } from "@/lib/seo.ts";
 import { site } from "@/lib/site.ts";
 
 const DISTINCTIONS = [
@@ -13,12 +14,13 @@ const DISTINCTIONS = [
 ];
 
 export const Route = createFileRoute("/_public/how-it-works")({
-  head: () => ({
-    meta: [
-      { title: `How referrals work | ${site.name}` },
-      { name: "description", content: "From referral to clinical review, approval, scheduling and completion." },
-    ],
-  }),
+  head: () =>
+    pageHead({
+      title: `How referrals work | ${site.name}`,
+      description:
+        "From referral to clinical review, approval, scheduling and completion.",
+      path: "/how-it-works",
+    }),
   component: HowItWorksPage,
 });
 

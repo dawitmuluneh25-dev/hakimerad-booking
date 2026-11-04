@@ -14,6 +14,7 @@ import ReferralSteps from "@/components/referral-steps.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import UrgentNotice from "@/components/urgent-notice.tsx";
 import { PROCEDURES } from "@/lib/procedures.ts";
+import { pageHead } from "@/lib/seo.ts";
 import { site } from "@/lib/site.ts";
 
 /** Local asset so the app has no third-party image/CDN dependency. */
@@ -38,12 +39,12 @@ const PRINCIPLES = [
 ];
 
 export const Route = createFileRoute("/_public/")({
-  head: () => ({
-    meta: [
-      { title: `${site.name} | ${site.organization}` },
-      { name: "description", content: site.tagline },
-    ],
-  }),
+  head: () =>
+    pageHead({
+      title: `${site.name} | ${site.organization}`,
+      description: site.tagline,
+      path: "/",
+    }),
   component: HomePage,
 });
 

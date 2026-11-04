@@ -37,6 +37,14 @@ export default function AppShell({
 
   return (
     <div className="flex min-h-screen bg-muted/30">
+      {/* The sidebar can be long on a small screen and the tab bar comes last in
+          source order, so keyboard users get a way past both. */}
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground"
+      >
+        Skip to content
+      </a>
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r bg-background md:flex">
         <div className="flex h-16 items-center px-5">
           <Logo />
@@ -53,6 +61,7 @@ export default function AppShell({
               activeProps={{
                 className:
                   "bg-primary/10 text-primary font-medium hover:bg-primary/10 hover:text-primary",
+                "aria-current": "page",
               }}
             >
               <item.icon className="size-4 shrink-0" />
@@ -97,7 +106,7 @@ export default function AppShell({
             key={item.to}
             to={item.to}
             className="flex min-w-0 flex-1 cursor-pointer flex-col items-center gap-1 px-1 py-2 text-[11px] text-muted-foreground"
-            activeProps={{ className: "text-primary font-medium" }}
+            activeProps={{ className: "text-primary font-medium", "aria-current": "page" }}
           >
             <item.icon className="size-5" />
             <span className="w-full truncate text-center">{item.label}</span>
@@ -134,6 +143,7 @@ export default function AppShell({
                 className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
                 activeProps={{
                   className: "bg-primary/10 text-primary font-medium",
+                  "aria-current": "page",
                 }}
               >
                 <item.icon className="size-4 shrink-0" />

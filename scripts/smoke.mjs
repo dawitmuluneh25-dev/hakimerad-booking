@@ -49,6 +49,21 @@ const CHECKS = [
     contains: ["HakimeRAD"],
   },
   { path: "/favicon.svg", type: "image/svg+xml", contains: ["<svg"] },
+  // Readiness: the database and the data directory must both work.
+  {
+    path: "/api/health",
+    type: "application/json",
+    contains: ['"status":"ok"', '"database"', '"storage"'],
+  },
+  // Crawling: robots must point at a sitemap that lists public pages only.
+  { path: "/robots.txt", type: "text/plain", contains: ["Sitemap:", "Disallow: /admin"] },
+  {
+    path: "/sitemap.xml",
+    type: "application/xml",
+    contains: ["<urlset", "<loc>", "/procedures/biopsy-fnac"],
+  },
+  // Sharing: the card social platforms fetch.
+  { path: "/og-image.png", type: "image/png", contains: [] },
 ];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import PolicyBody from "@/components/policy-body.tsx";
 import PublicPage from "@/components/public-page.tsx";
+import { pageHead } from "@/lib/seo.ts";
 import { site } from "@/lib/site.ts";
 
 const SECTIONS = [
@@ -13,7 +14,13 @@ const SECTIONS = [
 ];
 
 export const Route = createFileRoute("/_public/booking-policy")({
-  head: () => ({ meta: [{ title: `Booking policy | ${site.name}` }] }),
+  head: () =>
+    pageHead({
+      title: `Booking policy | ${site.name}`,
+      description:
+        "How requests, clinical review, scheduling, consent and emergencies are handled.",
+      path: "/booking-policy",
+    }),
   component: () => (
     <PublicPage eyebrow="Policies" title="Booking policy" intro="Draft wording, pending confirmation by HakimeRAD.">
       <PolicyBody sections={SECTIONS} />

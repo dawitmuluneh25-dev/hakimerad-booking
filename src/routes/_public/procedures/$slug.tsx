@@ -5,6 +5,7 @@ import PublicPage from "@/components/public-page.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import UrgentNotice from "@/components/urgent-notice.tsx";
 import { getProcedure } from "@/lib/procedures.ts";
+import { pageHead } from "@/lib/seo.ts";
 import { site } from "@/lib/site.ts";
 
 export const Route = createFileRoute("/_public/procedures/$slug")({
@@ -13,12 +14,12 @@ export const Route = createFileRoute("/_public/procedures/$slug")({
     if (!procedure) throw notFound();
     return { title: procedure.name, description: procedure.summary };
   },
-  head: ({ loaderData }) => ({
-    meta: [
-      { title: `${loaderData?.title ?? "Procedure"} | ${site.name}` },
-      { name: "description", content: loaderData?.description ?? "" },
-    ],
-  }),
+  head: ({ loaderData, params }) =>
+    pageHead({
+      title: `${loaderData?.title ?? "Procedure"} | ${site.name}`,
+      description: loaderData?.description ?? "",
+      path: `/procedures/${params.slug}`,
+    }),
   component: ProcedurePage,
 });
 

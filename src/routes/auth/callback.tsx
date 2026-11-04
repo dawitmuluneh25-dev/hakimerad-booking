@@ -5,7 +5,14 @@ export const Route = createFileRoute("/auth/callback")({
     handlers: {
       // Creates the local user row before the browser lands in the app.
       GET: async ({ request }) => {
-        const { authConfig, completeSignIn } = await import("@/server/auth.ts");
+        const [{ authConfig, completeSignIn }, { enforce }] = await Promise.all([
+          import("@/server/auth.ts"),
+          import("@/server/rate-limit.ts"),
+        ]);
+
+        const limited = enforce("auth.callback", request);
+        if (limited) return limited;
+
         const config = authConfig();
         if (!config) {
           return new Response(null, {

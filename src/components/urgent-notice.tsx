@@ -23,7 +23,9 @@ export default function UrgentNotice({
           <SirenIcon className="size-5" />
         </span>
         <div className="space-y-3">
-          <p className="font-display font-semibold text-destructive">
+          {/* The lighter red keeps the heading at 5.17:1 on the tinted panel in
+              dark mode; the theme's --destructive only reaches 3.49:1 there. */}
+          <p className="font-display font-semibold text-destructive dark:text-[oklch(0.82_0.13_25)]">
             Urgent: Hydrostatic intussusception reduction
           </p>
           <p className={cn("text-sm leading-relaxed", compact && "line-clamp-3 sm:line-clamp-none")}>

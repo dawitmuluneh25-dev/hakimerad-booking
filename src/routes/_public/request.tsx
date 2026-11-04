@@ -4,15 +4,16 @@ import PublicPage from "@/components/public-page.tsx";
 import UrgentNotice from "@/components/urgent-notice.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { PROCEDURES } from "@/lib/procedures.ts";
+import { pageHead } from "@/lib/seo.ts";
 import { site } from "@/lib/site.ts";
 
 export const Route = createFileRoute("/_public/request")({
-  head: () => ({
-    meta: [
-      { title: `Start a procedure request | ${site.name}` },
-      { name: "description", content: "Choose a procedure to begin a referral request." },
-    ],
-  }),
+  head: () =>
+    pageHead({
+      title: `Start a procedure request | ${site.name}`,
+      description: "Choose a procedure to begin a referral request.",
+      path: "/request",
+    }),
   component: RequestPage,
 });
 

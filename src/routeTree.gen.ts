@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as PublicRouteImport } from './routes/_public'
+import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AppAccountRouteImport } from './routes/_app/account'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppNotificationsRouteImport } from './routes/_app/notifications'
@@ -23,6 +25,7 @@ import { Route as PublicOfflineRouteImport } from './routes/_public/offline'
 import { Route as PublicPrivacyRouteImport } from './routes/_public/privacy'
 import { Route as PublicReferrersRouteImport } from './routes/_public/referrers'
 import { Route as PublicRequestRouteImport } from './routes/_public/request'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiUploadRouteImport } from './routes/api/upload'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as AuthDevLoginRouteImport } from './routes/auth/dev-login'
@@ -53,6 +56,16 @@ const AppRoute = AppRouteImport.update({
 } as any)
 const PublicRoute = PublicRouteImport.update({
   id: '/_public',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppAccountRoute = AppAccountRouteImport.update({
@@ -114,6 +127,11 @@ const PublicRequestRoute = PublicRequestRouteImport.update({
   id: '/request',
   path: '/request',
   getParentRoute: () => PublicRoute,
+} as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiUploadRoute = ApiUploadRouteImport.update({
   id: '/api/upload',
@@ -233,6 +251,8 @@ const AppStaffReviewReferenceRoute = AppStaffReviewReferenceRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof PublicIndexRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/account': typeof AppAccountRoute
   '/dashboard': typeof AppDashboardRoute
   '/notifications': typeof AppNotificationsRoute
@@ -244,6 +264,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PublicPrivacyRoute
   '/referrers': typeof PublicReferrersRoute
   '/request': typeof PublicRequestRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/upload': typeof ApiUploadRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/dev-login': typeof AuthDevLoginRoute
@@ -270,6 +291,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof PublicIndexRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/account': typeof AppAccountRoute
   '/dashboard': typeof AppDashboardRoute
   '/notifications': typeof AppNotificationsRoute
@@ -281,6 +304,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PublicPrivacyRoute
   '/referrers': typeof PublicReferrersRoute
   '/request': typeof PublicRequestRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/upload': typeof ApiUploadRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/dev-login': typeof AuthDevLoginRoute
@@ -309,6 +333,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/_public': typeof PublicRouteWithChildren
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_app/account': typeof AppAccountRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/notifications': typeof AppNotificationsRoute
@@ -320,6 +346,7 @@ export interface FileRoutesById {
   '/_public/privacy': typeof PublicPrivacyRoute
   '/_public/referrers': typeof PublicReferrersRoute
   '/_public/request': typeof PublicRequestRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/upload': typeof ApiUploadRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/dev-login': typeof AuthDevLoginRoute
@@ -349,6 +376,8 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/robots.txt'
+    | '/sitemap.xml'
     | '/account'
     | '/dashboard'
     | '/notifications'
@@ -360,6 +389,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/referrers'
     | '/request'
+    | '/api/health'
     | '/api/upload'
     | '/auth/callback'
     | '/auth/dev-login'
@@ -386,6 +416,8 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/robots.txt'
+    | '/sitemap.xml'
     | '/account'
     | '/dashboard'
     | '/notifications'
@@ -397,6 +429,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/referrers'
     | '/request'
+    | '/api/health'
     | '/api/upload'
     | '/auth/callback'
     | '/auth/dev-login'
@@ -424,6 +457,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_app'
     | '/_public'
+    | '/robots.txt'
+    | '/sitemap.xml'
     | '/_app/account'
     | '/_app/dashboard'
     | '/_app/notifications'
@@ -435,6 +470,7 @@ export interface FileRouteTypes {
     | '/_public/privacy'
     | '/_public/referrers'
     | '/_public/request'
+    | '/api/health'
     | '/api/upload'
     | '/auth/callback'
     | '/auth/dev-login'
@@ -464,6 +500,9 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   PublicRoute: typeof PublicRouteWithChildren
+  RobotsDottxtRoute: typeof RobotsDottxtRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  ApiHealthRoute: typeof ApiHealthRoute
   ApiUploadRoute: typeof ApiUploadRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   AuthDevLoginRoute: typeof AuthDevLoginRoute
@@ -486,6 +525,20 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof PublicRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app/account': {
@@ -571,6 +624,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/request'
       preLoaderRoute: typeof PublicRequestRouteImport
       parentRoute: typeof PublicRoute
+    }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/upload': {
       id: '/api/upload'
@@ -814,6 +874,9 @@ const PublicRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   PublicRoute: PublicRouteWithChildren,
+  RobotsDottxtRoute: RobotsDottxtRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
+  ApiHealthRoute: ApiHealthRoute,
   ApiUploadRoute: ApiUploadRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   AuthDevLoginRoute: AuthDevLoginRoute,

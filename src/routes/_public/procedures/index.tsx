@@ -2,19 +2,17 @@ import { createFileRoute } from "@tanstack/react-router";
 import ProcedureCard from "@/components/procedure-card.tsx";
 import PublicPage from "@/components/public-page.tsx";
 import { PROCEDURES } from "@/lib/procedures.ts";
+import { pageHead } from "@/lib/seo.ts";
 import { site } from "@/lib/site.ts";
 
 export const Route = createFileRoute("/_public/procedures/")({
-  head: () => ({
-    meta: [
-      { title: `Procedures | ${site.name}` },
-      {
-        name: "description",
-        content:
-          "Image-guided biopsy and FNAC, abscess drainage, and hydrostatic intussusception reduction coordination.",
-      },
-    ],
-  }),
+  head: () =>
+    pageHead({
+      title: `Procedures | ${site.name}`,
+      description:
+        "Image-guided biopsy and FNAC, abscess drainage, and hydrostatic intussusception reduction coordination.",
+      path: "/procedures",
+    }),
   component: ProceduresPage,
 });
 

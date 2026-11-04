@@ -14,12 +14,13 @@ export const Route = createFileRoute("/api/upload")({
       // Private uploads: the files never leave the local disk and are served
       // back only through /api/files/$id after a permission check.
       POST: async ({ request }) => {
-        const [{ getDb }, { identityFromSessionToken, readCookie, SESSION_COOKIE }, { storeFile }, shared] =
+        const [{ getDb }, { identityFromSessionToken, readCookie, SESSION_COOKIE }, { storeFile }, shared, { enforce }] =
           await Promise.all([
             import("@/server/db.ts"),
             import("@/server/auth.ts"),
             import("@/server/storage.ts"),
             import("@/shared/referrals.ts"),
+            import("@/server/rate-limit.ts"),
           ]);
 
         const identity = identityFromSessionToken(
@@ -28,6 +29,10 @@ export const Route = createFileRoute("/api/upload")({
         if (!identity) {
           return Response.json({ message: "Please sign in." }, { status: 401 });
         }
+
+        // Keyed by the account, so one person opening many tabs shares one budget.
+        const limited = enforce("upload", request, identity.tokenIdentifier);
+        if (limited) return limited;
 
         const form = await request.formData();
         const file = form.get("file");

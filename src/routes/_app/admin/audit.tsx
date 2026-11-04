@@ -53,10 +53,18 @@ function AuditPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-muted/40 text-left text-muted-foreground">
-                <th className="p-3 font-medium">When</th>
-                <th className="p-3 font-medium">Actor</th>
-                <th className="p-3 font-medium">Action</th>
-                <th className="p-3 font-medium">Summary</th>
+                <th scope="col" className="p-3 font-medium">
+                  When
+                </th>
+                <th scope="col" className="p-3 font-medium">
+                  Actor
+                </th>
+                <th scope="col" className="p-3 font-medium">
+                  Action
+                </th>
+                <th scope="col" className="p-3 font-medium">
+                  Summary
+                </th>
               </tr>
             </thead>
             <tbody>

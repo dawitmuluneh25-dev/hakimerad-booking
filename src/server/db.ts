@@ -331,7 +331,7 @@ CREATE INDEX IF NOT EXISTS institutions_by_name ON institutions (name);
 `;
 
 /** Columns added after the first release; `CREATE TABLE IF NOT EXISTS` cannot
- * add them to an existing database, so they are applied here idempotently. */
+ * add them to an existing database, so they are applied by migration 2. */
 const ADDED_COLUMNS: Array<[table: string, column: string, ddl: string]> = [
   ["referrals", "priority", "TEXT"],
   ["referrals", "review_modality", "TEXT"],
@@ -344,27 +344,113 @@ const ADDED_COLUMNS: Array<[table: string, column: string, ddl: string]> = [
   ["referrals", "payment_note", "TEXT"],
 ];
 
-function migrate(db: DatabaseSync): void {
+function addMissingColumns(db: DatabaseSync): void {
   for (const [table, column, ddl] of ADDED_COLUMNS) {
     const columns = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{
       name?: string;
     }>;
     if (columns.some((entry) => entry.name === column)) continue;
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${ddl}`);
+  }
+}
+
+export type Migration = { version: number; name: string; up: (db: Db) => void };
+
+/**
+ * Ordered schema history. The applied version lives in SQLite's own
+ * `PRAGMA user_version`, so the version commits with the same transaction as the
+ * change it describes and there is no bookkeeping table to drift.
+ *
+ * Rules: never rewrite or renumber an entry that has shipped, and never make an
+ * entry depend on a later one. Databases created before this list existed start
+ * at version 0 and re-run both steps, which are written to be idempotent.
+ */
+export const MIGRATIONS: readonly Migration[] = [
+  {
+    version: 1,
+    name: "baseline",
+    up: (db) => db.exec(SCHEMA),
+  },
+  {
+    version: 2,
+    name: "referral-review-and-payment-columns",
+    up: (db) => addMissingColumns(db),
+  },
+];
+
+/** The version a fully migrated database should report. */
+export function latestSchemaVersion(): number {
+  return MIGRATIONS.reduce((max, migration) => Math.max(max, migration.version), 0);
+}
+
+/** The version recorded in the database file, or 0 when it predates migrations. */
+export function schemaVersion(db: Db): number {
+  const row = db.prepare("PRAGMA user_version").get() as
+    | { user_version?: number }
+    | undefined;
+  return Number(row?.user_version ?? 0);
+}
+
+/**
+ * Applies every pending migration in order, one transaction each, and records
+ * the version in the same transaction. A failure rolls that step back and stops,
+ * so a half-applied schema is never recorded as done.
+ */
+export function migrate(db: Db): { from: number; to: number; applied: string[] } {
+  return applyMigrations(db, MIGRATIONS);
+}
+
+/** The engine behind `migrate`, exposed so tests can feed it a failing list. */
+export function applyMigrations(
+  db: Db,
+  migrations: readonly Migration[],
+): { from: number; to: number; applied: string[] } {
+  const from = schemaVersion(db);
+  const pending = migrations
+    .filter((migration) => migration.version > from)
+    .sort((a, b) => a.version - b.version);
+  const applied: string[] = [];
+
+  for (const migration of pending) {
+    db.exec("BEGIN IMMEDIATE");
     try {
-      db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${ddl}`);
-    } catch {
-      // A concurrent process already added it; the next start will see it.
+      migration.up(db);
+      // PRAGMA values cannot be parameterised; the value comes from our own list.
+      db.exec(`PRAGMA user_version = ${Math.trunc(migration.version)}`);
+      db.exec("COMMIT");
+      applied.push(migration.name);
+    } catch (error) {
+      try {
+        db.exec("ROLLBACK");
+      } catch {
+        // The statement failed before the transaction opened.
+      }
+      throw new Error(
+        `Database migration ${migration.version} (${migration.name}) failed: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+        { cause: error },
+      );
     }
   }
+
+  return { from, to: schemaVersion(db), applied };
+}
+
+/** A blank environment variable counts as unset: `X=` in a unit file must not
+ * quietly point the app at an empty path and a throwaway database. */
+function envPath(name: string): string | undefined {
+  const value = process.env[name]?.trim();
+  return value ? value : undefined;
 }
 
 /** Uploaded documents live beside the database, never in the database file. */
 export function dataDir(): string {
-  return process.env.DATA_DIR ?? resolve(process.cwd(), "data");
+  return envPath("DATA_DIR") ?? resolve(process.cwd(), "data");
 }
 
 export function databasePath(): string {
-  return process.env.DATABASE_PATH ?? resolve(dataDir(), "app.db");
+  return envPath("DATABASE_PATH") ?? resolve(dataDir(), "app.db");
 }
 
 export function uploadDir(): string {
@@ -376,7 +462,6 @@ export function openDatabase(path: string = databasePath()): Db {
   const db = new DatabaseSync(path);
   db.exec("PRAGMA journal_mode = WAL");
   db.exec("PRAGMA foreign_keys = ON");
-  db.exec(SCHEMA);
   migrate(db);
   seedDefaults(db);
   return db;
