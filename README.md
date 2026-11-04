@@ -72,8 +72,26 @@ provider.
 | `pnpm test`            | Vitest: server-side workflow tests over in-memory SQLite            |
 | `pnpm typecheck`       | Regenerate the route tree, then `tsc --noEmit`                      |
 | `pnpm lint`            | ESLint, zero warnings allowed                                       |
+| `pnpm smoke <url>`     | Check a running build's public routes and published details          |
 | `pnpm generate-routes` | Regenerate `src/routeTree.generated.ts` after adding a route file   |
 | `pnpm prettier-check` / `pnpm prettier-fix` | Formatting check / rewrite                     |
+
+## CI/CD
+
+`.github/workflows/ci.yml` runs on every push to `main` and every pull request:
+`pnpm install --frozen-lockfile`, `typecheck`, `lint`, `test`, `build`, then a
+deployment check that boots the built app and smoke tests every public route
+(`scripts/smoke.mjs`). No secrets are needed.
+
+`.github/workflows/deploy.yml` runs after CI succeeds on `main`. It re-builds the
+tested commit, runs the same smoke test, stages a release bundle and — once the
+repository variables and `DEPLOY_SSH_KEY` secret exist — deploys over SSH and
+smoke tests the live URL. The job is skipped while `DEPLOY_ENABLED` is unset, so
+merging the pipeline is safe before any host is ready.
+
+Setup steps, required variables/secrets, host prerequisites, production
+environment and the known limitations of the current deployment are in
+[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## How the pieces fit
 

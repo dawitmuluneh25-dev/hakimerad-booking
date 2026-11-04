@@ -1,0 +1,143 @@
+name: Deploy
+
+# Runs after CI succeeds on main. The deploy job stays skipped until the
+# repository variable DEPLOY_ENABLED is set to "true" and the host credentials
+# below exist, so the pipeline is safe to merge before infrastructure is ready.
+# See docs/DEPLOYMENT.md for the full checklist.
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  PNPM_VERSION: "12.16.1"
+
+jobs:
+  stage:
+    name: Stage the release
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout the tested commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      # Release gate: a build that fails its own smoke test is never staged.
+      - name: Start the production build
+        run: |
+          pnpm preview --host 127.0.0.1 --port 4173 --strictPort > preview.log 2>&1 &
+
+      - name: Smoke test the production build
+        run: node scripts/smoke.mjs http://127.0.0.1:4173 --timeout=90000
+
+      - name: Server log
+        if: always()
+        run: cat preview.log || true
+
+      - name: Assemble the release bundle
+        run: |
+          mkdir -p release
+          cp -r dist package.json pnpm-lock.yaml pnpm-workspace.yaml .nvmrc scripts release/
+          tar -czf release.tar.gz release
+
+      - name: Upload the release bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-bundle
+          path: release.tar.gz
+          retention-days: 14
+          if-no-files-found: error
+
+  deploy:
+    name: Deploy over SSH
+    needs: stage
+    if: vars.DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: ${{ vars.DEPLOY_URL }}
+    steps:
+      - name: Download the release bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: release-bundle
+
+      - name: Unpack the bundle
+        run: tar -xzf release.tar.gz
+
+      - name: Install the deploy key
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          if [ -n "${DEPLOY_KNOWN_HOSTS:-}" ]; then
+            printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+            echo "SSH_OPTS=-o StrictHostKeyChecking=yes" >> "$GITHUB_ENV"
+          else
+            echo "SSH_OPTS=-o StrictHostKeyChecking=accept-new" >> "$GITHUB_ENV"
+          fi
+
+      - name: Upload the release
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+        run: |
+          set -euo pipefail
+          ssh $SSH_OPTS "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p '$DEPLOY_PATH'"
+          rsync -az --delete -e "ssh $SSH_OPTS" \
+            release/ "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/"
+
+      - name: Install and restart the service
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+          DEPLOY_RESTART_CMD: ${{ vars.DEPLOY_RESTART_CMD }}
+        run: |
+          set -euo pipefail
+          ssh $SSH_OPTS "$DEPLOY_USER@$DEPLOY_HOST" \
+            "set -euo pipefail; cd '$DEPLOY_PATH'; pnpm install --frozen-lockfile --prefer-offline; $DEPLOY_RESTART_CMD"
+
+      - name: Smoke test the deployed site
+        env:
+          DEPLOY_URL: ${{ vars.DEPLOY_URL }}
+        run: node release/scripts/smoke.mjs "$DEPLOY_URL" --timeout=120000
