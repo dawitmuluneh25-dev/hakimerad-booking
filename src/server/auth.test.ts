@@ -44,9 +44,15 @@ describe("session cookie sealing", () => {
   it("rejects a tampered token", () => {
     const token = serializeSession(payload());
     const parts = token.split(".");
-    // Flip the last character of the ciphertext.
-    const last = parts[3];
-    parts[3] = last.slice(0, -1) + (last.endsWith("A") ? "B" : "A");
+    // Flip the first character of the ciphertext, not the last: the trailing
+    // character of a base64 group can carry only padding bits, so `A` -> `B`
+    // there decodes to the identical bytes and the "tampered" token is really
+    // the original. That made this test pass or fail depending on ciphertext
+    // length. Every bit of the first character is significant.
+    const original = parts[3];
+    const flipped = `${original.startsWith("A") ? "B" : "A"}${original.slice(1)}`;
+    expect(flipped).not.toBe(original);
+    parts[3] = flipped;
     expect(parseSession(parts.join("."))).toBeNull();
   });
 

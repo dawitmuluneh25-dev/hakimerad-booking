@@ -14,6 +14,7 @@ import {
 } from "./db.ts";
 
 const directories: string[] = [];
+const opened: Db[] = [];
 
 function tempDatabase(): string {
   const directory = mkdtempSync(join(tmpdir(), "hakimerad-db-"));
@@ -21,7 +22,22 @@ function tempDatabase(): string {
   return join(directory, "app.db");
 }
 
+/** Tracks a handle so cleanup can close it even when an assertion fails before
+ * the test's own `close()`. Windows will not delete a file with an open handle,
+ * so a leaked database would otherwise turn one failure into two. */
+function track<T extends Db>(db: T): T {
+  opened.push(db);
+  return db;
+}
+
 afterEach(() => {
+  for (const db of opened.splice(0)) {
+    try {
+      db.close();
+    } catch {
+      // The test already closed it.
+    }
+  }
   for (const directory of directories.splice(0)) {
     rmSync(directory, { recursive: true, force: true });
   }
@@ -33,7 +49,7 @@ function columns(db: Db, table: string): string[] {
 
 describe("schema migrations", () => {
   it("brings a new database to the latest version", () => {
-    const db = openDatabase(":memory:");
+    const db = track(openDatabase(":memory:"));
 
     expect(schemaVersion(db)).toBe(latestSchemaVersion());
     expect(columns(db, "users")).toContain("token_identifier");
@@ -51,11 +67,11 @@ describe("schema migrations", () => {
 
   it("applies nothing when the database is already current", () => {
     const path = tempDatabase();
-    const first = openDatabase(path);
+    const first = track(openDatabase(path));
     expect(schemaVersion(first)).toBe(latestSchemaVersion());
     first.close();
 
-    const second = openDatabase(path);
+    const second = track(openDatabase(path));
     const result = migrate(second);
     expect(result).toEqual({ from: latestSchemaVersion(), to: latestSchemaVersion(), applied: [] });
     second.close();
@@ -65,7 +81,7 @@ describe("schema migrations", () => {
     const path = tempDatabase();
     // The original shape: referrals without the review and payment columns, and
     // no recorded version at all.
-    const legacy = new DatabaseSync(path);
+    const legacy = track(new DatabaseSync(path));
     legacy.exec(`
       CREATE TABLE referrals (
         id TEXT PRIMARY KEY,
@@ -122,7 +138,7 @@ describe("schema migrations", () => {
   });
 
   it("rolls a failed migration back and keeps the old version", () => {
-    const db = new DatabaseSync(":memory:");
+    const db = track(new DatabaseSync(":memory:"));
     expect(() =>
       applyMigrations(db, [
         { version: 1, name: "ok", up: (target) => target.exec("CREATE TABLE first (id TEXT)") },
@@ -147,3 +163,5 @@ describe("schema migrations", () => {
     db.close();
   });
 });
+
+

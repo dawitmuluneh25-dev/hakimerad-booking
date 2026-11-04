@@ -51,11 +51,21 @@ export const Route = createFileRoute("/api/upload")({
           return Response.json({ message: "Each file must be 15 MB or smaller." }, { status: 400 });
         }
 
-        const storageId = storeFile(getDb(), {
-          bytes: new Uint8Array(await file.arrayBuffer()),
-          fileName: file.name,
-          contentType,
-        });
+        const bytes = new Uint8Array(await file.arrayBuffer());
+
+        // The declared type is the browser's claim; the bytes decide.
+        const { declaredTypeMatchesBytes } = await import("@/server/file-type.ts");
+        if (!declaredTypeMatchesBytes(contentType, bytes)) {
+          return Response.json(
+            {
+              message:
+                "This file does not look like a PDF, JPEG, PNG or WebP. Check the file and try again.",
+            },
+            { status: 400 },
+          );
+        }
+
+        const storageId = storeFile(getDb(), { bytes, fileName: file.name, contentType });
         return Response.json({ storageId });
       },
     },
