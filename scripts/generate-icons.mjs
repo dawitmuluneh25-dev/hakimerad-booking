@@ -2,16 +2,41 @@
  * Generates the PWA icons with no image library: a small PNG encoder on top of
  * node:zlib. Run `node scripts/generate-icons.mjs` after changing the mark.
  *
- * The mark is a neutral medical cross with a needle line, drawn from the brand
- * teal. It is not an official HakimeRAD logo.
+ * The artwork is the official HakimeRAD mark from hakimerad.com — a broken ring
+ * with a 2x2 grid of squares (navy #0a2540 tile, white ring, blue/cyan squares),
+ * the same composition as the site's favicon.svg. Geometry is copied verbatim
+ * from the site's inline header SVG (viewBox 0 0 375 323).
  */
 import { deflateSync } from "node:zlib";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-const TEAL = [31, 111, 120, 255];
+const NAVY = [10, 37, 64, 255]; // #0a2540
 const WHITE = [255, 255, 255, 255];
-const TRANSPARENT = [0, 0, 0, 0];
+const BLUE = [0, 119, 182, 255]; // #0077b6
+const CYAN = [0, 180, 216, 255]; // #00b4d8
+const CLEAR = [0, 0, 0, 0];
+
+// Mark geometry, in the site's own coordinate space.
+const MARK_W = 375;
+const MARK_H = 323;
+const RING = { cx: 151.08, cy: 161.5, radius: 135.75, stroke: 51.5 };
+// The ring is drawn as four arcs; these are the four gaps between them, in
+// degrees clockwise from the positive x axis.
+const GAPS = [
+  [81.2, 90.1],
+  [175.1, 184.9],
+  [269.9, 278.8],
+  [330, 30.3],
+];
+const SQUARES = [
+  { x: 243, y: 95.5, size: 60, radius: 12, colour: BLUE },
+  { x: 315, y: 95.5, size: 60, radius: 12, colour: CYAN },
+  { x: 243, y: 167.5, size: 60, radius: 12, colour: CYAN },
+  { x: 315, y: 167.5, size: 60, radius: 12, colour: BLUE },
+];
+
+const SUPERSAMPLE = 4;
 
 function crc32(buffer) {
   let crc = 0xffffffff;
@@ -58,96 +83,129 @@ function encodePng(width, height, pixels) {
   ]);
 }
 
-function canvas(size) {
-  const pixels = Buffer.alloc(size * size * 4);
-  const put = (x, y, colour) => {
-    if (x < 0 || y < 0 || x >= size || y >= size) return;
-    const offset = (y * size + x) * 4;
-    pixels[offset] = colour[0];
-    pixels[offset + 1] = colour[1];
-    pixels[offset + 2] = colour[2];
-    pixels[offset + 3] = colour[3];
-  };
-  const roundedSquare = (radius, colour) => {
-    for (let y = 0; y < size; y += 1) {
-      for (let x = 0; x < size; x += 1) {
-        const cx = Math.min(Math.max(x, radius), size - 1 - radius);
-        const cy = Math.min(Math.max(y, radius), size - 1 - radius);
-        const inside = (x - cx) ** 2 + (y - cy) ** 2 <= radius ** 2;
-        if (inside) put(x, y, colour);
-      }
-    }
-  };
-  const rect = (x0, y0, w, h, colour) => {
-    for (let y = y0; y < y0 + h; y += 1)
-      for (let x = x0; x < x0 + w; x += 1) put(x, y, colour);
-  };
-  const line = (x0, y0, x1, y1, width, colour) => {
-    const steps = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
-    for (let i = 0; i <= steps; i += 1) {
-      const x = Math.round(x0 + ((x1 - x0) * i) / steps);
-      const y = Math.round(y0 + ((y1 - y0) * i) / steps);
-      for (let dx = -width; dx <= width; dx += 1) {
-        for (let dy = -width; dy <= width; dy += 1) {
-          if (dx * dx + dy * dy <= width * width) put(x + dx, y + dy, colour);
-        }
-      }
-    }
-  };
-  return { pixels, roundedSquare, rect, line };
+/** Windows .ico container holding one PNG-compressed 32-bit image. */
+function encodeIco(png, size) {
+  const header = Buffer.alloc(6);
+  header.writeUInt16LE(0, 0); // reserved
+  header.writeUInt16LE(1, 2); // 1 = icon
+  header.writeUInt16LE(1, 4); // one image
+  const entry = Buffer.alloc(16);
+  entry[0] = size >= 256 ? 0 : size;
+  entry[1] = size >= 256 ? 0 : size;
+  entry[2] = 0; // palette
+  entry[3] = 0; // reserved
+  entry.writeUInt16LE(1, 4); // colour planes
+  entry.writeUInt16LE(32, 6); // bits per pixel
+  entry.writeUInt32LE(png.length, 8); // bytes in resource
+  entry.writeUInt32LE(22, 12); // offset of image data
+  return Buffer.concat([header, entry, png]);
+}
+
+const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+function inGap(angle) {
+  return GAPS.some(([from, to]) =>
+    from < to ? angle > from && angle < to : angle > from || angle < to,
+  );
+}
+
+/** Colour at one supersampled pixel, in mark coordinates (mx, my). */
+function markColour(mx, my) {
+  for (const square of SQUARES) {
+    if (
+      mx < square.x ||
+      mx > square.x + square.size ||
+      my < square.y ||
+      my > square.y + square.size
+    )
+      continue;
+    const cx = clamp(mx, square.x + square.radius, square.x + square.size - square.radius);
+    const cy = clamp(my, square.y + square.radius, square.y + square.size - square.radius);
+    if ((mx - cx) ** 2 + (my - cy) ** 2 <= square.radius ** 2) return square.colour;
+  }
+
+  const dx = mx - RING.cx;
+  const dy = my - RING.cy;
+  const distance = Math.hypot(dx, dy);
+  const half = RING.stroke / 2;
+  if (distance >= RING.radius - half && distance <= RING.radius + half) {
+    let angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+    if (angle < 0) angle += 360;
+    if (!inGap(angle)) return WHITE;
+  }
+  return null;
 }
 
 function drawIcon(size, { maskable = false } = {}) {
-  const { pixels, roundedSquare, rect, line } = canvas(size);
-  if (!maskable) roundedSquare(Math.round(size * 0.22), TEAL);
-  else {
-    // Full-bleed background; the mark stays inside the safe zone.
-    for (let y = 0; y < size; y += 1)
-      for (let x = 0; x < size; x += 1) {
-        const offset = (y * size + x) * 4;
-        pixels[offset] = TEAL[0];
-        pixels[offset + 1] = TEAL[1];
-        pixels[offset + 2] = TEAL[2];
-        pixels[offset + 3] = 255;
-      }
+  const width = size * SUPERSAMPLE;
+  const pixel = Buffer.alloc(width * width * 4);
+  const radius = Math.round(width * 0.22);
+
+  // Mark footprint: the site fills ~76% of the tile; maskable art stays inside
+  // the 80% safe zone, so it is drawn smaller and centred on a full-bleed tile.
+  const markWidth = width * (maskable ? 0.6 : 0.74);
+  const scale = markWidth / MARK_W;
+  const offsetX = (width - MARK_W * scale) / 2;
+  const offsetY = (width - MARK_H * scale) / 2;
+
+  for (let y = 0; y < width; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const offset = (y * width + x) * 4;
+      const cx = clamp(x, radius, width - 1 - radius);
+      const cy = clamp(y, radius, width - 1 - radius);
+      const inBackground =
+        maskable || (x - cx) ** 2 + (y - cy) ** 2 <= radius ** 2;
+      const colour = inBackground
+        ? (markColour((x - offsetX) / scale, (y - offsetY) / scale) ?? NAVY)
+        : CLEAR;
+      pixel[offset] = colour[0];
+      pixel[offset + 1] = colour[1];
+      pixel[offset + 2] = colour[2];
+      pixel[offset + 3] = colour[3];
+    }
   }
-  const scale = maskable ? 0.62 : 0.72;
-  const centre = size / 2;
-  const bar = Math.round(size * 0.09 * scale);
-  const arm = Math.round(size * 0.24 * scale);
-  rect(centre - bar / 2, centre - arm, bar, arm * 2, WHITE);
-  rect(centre - arm, centre - bar / 2, arm * 2, bar, WHITE);
-  // Needle guide line crossing the cross, as on the hero image.
-  line(
-    centre - arm * 0.85,
-    centre + arm * 0.85,
-    centre + arm * 0.85,
-    centre - arm * 0.85,
-    Math.max(1, Math.round(size * 0.022)),
-    TEAL,
-  );
-  line(
-    centre - arm * 0.8,
-    centre + arm * 0.8,
-    centre + arm * 0.8,
-    centre - arm * 0.8,
-    Math.max(1, Math.round(size * 0.012)),
-    WHITE,
-  );
-  return encodePng(size, size, pixels);
+
+  // Box-filter down to the requested size: cheap anti-aliasing for the arcs.
+  const out = Buffer.alloc(size * size * 4);
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
+      let r = 0;
+      let g = 0;
+      let b = 0;
+      let a = 0;
+      for (let sy = 0; sy < SUPERSAMPLE; sy += 1) {
+        for (let sx = 0; sx < SUPERSAMPLE; sx += 1) {
+          const offset = ((y * SUPERSAMPLE + sy) * width + (x * SUPERSAMPLE + sx)) * 4;
+          r += pixel[offset];
+          g += pixel[offset + 1];
+          b += pixel[offset + 2];
+          a += pixel[offset + 3];
+        }
+      }
+      const samples = SUPERSAMPLE * SUPERSAMPLE;
+      const target = (y * size + x) * 4;
+      out[target] = Math.round(r / samples);
+      out[target + 1] = Math.round(g / samples);
+      out[target + 2] = Math.round(b / samples);
+      out[target + 3] = Math.round(a / samples);
+    }
+  }
+  return encodePng(size, size, out);
 }
 
-const outDir = resolve(process.cwd(), "public", "icons");
-mkdirSync(outDir, { recursive: true });
+const publicDir = resolve(process.cwd(), "public");
+const iconsDir = resolve(publicDir, "icons");
+mkdirSync(iconsDir, { recursive: true });
 
 const outputs = [
-  ["icon-192.png", drawIcon(192)],
-  ["icon-512.png", drawIcon(512)],
-  ["icon-maskable-512.png", drawIcon(512, { maskable: true })],
-  ["apple-touch-icon.png", drawIcon(180)],
+  [resolve(iconsDir, "icon-192.png"), drawIcon(192)],
+  [resolve(iconsDir, "icon-512.png"), drawIcon(512)],
+  [resolve(iconsDir, "icon-maskable-512.png"), drawIcon(512, { maskable: true })],
+  [resolve(iconsDir, "apple-touch-icon.png"), drawIcon(180)],
+  [resolve(publicDir, "favicon.ico"), encodeIco(drawIcon(32), 32)],
 ];
 
-for (const [name, buffer] of outputs) {
-  writeFileSync(resolve(outDir, name), buffer);
-  console.log(`${name}: ${buffer.length} bytes`);
+for (const [path, buffer] of outputs) {
+  writeFileSync(path, buffer);
+  console.log(`${path.replace(`${process.cwd()}\\`, "")}: ${buffer.length} bytes`);
 }

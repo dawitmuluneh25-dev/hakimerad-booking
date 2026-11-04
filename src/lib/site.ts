@@ -8,6 +8,8 @@ type Site = {
   contact: {
     phone: string;
     email: string;
+    website: string;
+    whatsapp: string;
     address: string;
     hours: string;
     emergencyPhone: string;
@@ -15,13 +17,13 @@ type Site = {
   };
 };
 
-// Contact values are placeholders until HakimeRAD confirms them; they will
-// move to admin-editable settings in a later milestone.
-export const PLACEHOLDER_MARK = "(to be confirmed)";
-
+// Contact values taken from hakimerad.com (contact page + MedicalBusiness
+// structured data). They are the published institutional enquiry details; the
+// company does not publish a walk-in address. Administrators can override the
+// same values in Admin -> Settings, which is what the server reads.
 export const site: Site = {
   name: "HakimeRAD IR Booking",
-  organization: "HakimeRAD Radiologic Consultancy",
+  organization: "Hakimerad Medical Consultancy",
   tagline:
     "Referral, review and scheduling for image-guided interventional radiology procedures.",
   nav: [
@@ -31,11 +33,13 @@ export const site: Site = {
     { label: "Contact", to: "/contact" },
   ],
   contact: {
-    phone: `+000 000 000 000 ${PLACEHOLDER_MARK}`,
-    email: `bookings@hakimerad.example ${PLACEHOLDER_MARK}`,
-    address: `Clinic address ${PLACEHOLDER_MARK}`,
-    hours: `Monday to Friday, hours ${PLACEHOLDER_MARK}`,
-    emergencyPhone: `+000 000 000 000 ${PLACEHOLDER_MARK}`,
+    phone: "+251 906 373154",
+    email: "enquiry@hakimerad.com",
+    website: "https://hakimerad.com",
+    whatsapp: "https://wa.me/251906373154",
+    address: "Remote reporting across Ethiopia — no walk-in address is published.",
+    hours: "24/7 platform access, with after-hours and emergency cover.",
+    emergencyPhone: "+251 906 373154",
     emergencyNote:
       "For any suspected emergency, go to the nearest emergency department or contact your treating hospital immediately.",
   },

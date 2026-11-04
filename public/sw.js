@@ -6,7 +6,7 @@
  * serve another person's clinical information from the cache. Offline, the app
  * shows the public offline page and refuses to submit anything.
  */
-const VERSION = "hakimerad-v1";
+const VERSION = "hakimerad-v2";
 const OFFLINE_URL = "/offline";
 const PRECACHE = [
   OFFLINE_URL,
@@ -16,6 +16,7 @@ const PRECACHE = [
   "/icons/icon-maskable-512.png",
   "/icons/apple-touch-icon.png",
   "/favicon.ico",
+  "/favicon.svg",
 ];
 
 // Never cached: anything patient-specific or session-specific.
