@@ -8,9 +8,11 @@ Public launch of the HakimeRAD IR Booking site.
 
 ## Status at 2026-11-05
 
-Decisions recorded: **B1** — Keycloak, with referrals restricted to referring institutions and physicians. **B2** — a Linux server. **B3** — Yegara shared hosting. One question is still open between B2 and B3: whether Yegara is the only target, or it hosts DNS while a separate Linux VPS runs the app. The deploy pipeline and `docs/DEPLOYMENT.md` assume ssh + systemd, which a shared plan may not provide.
+Decisions recorded (final): **B1** — a managed OpenID Connect provider, not a self-hosted Keycloak; referrals restricted to referring institutions and physicians; accounts issued by the clinic with roles held in the application. See `docs/IDENTITY.md`. **B2** — cross-platform: this Windows machine and a Linux VPS, the VPS being the Hostinger one. Which of the two is authoritative production is still open. **B3** — Yegara, now expected to be DNS and email only, because a managed provider removes the need to run Keycloak there; to be confirmed.
 
-Delivered in `dbd81ca` ahead of publication: **Y4** rate limiting (sign-in, callback, submission, upload), **Y7** `/api/health`, **Y8** versioned transactional migrations and `pnpm migrate`, **Y9** SEO and sharing kit, **Y10** accessibility pass, **Y11** responsive pass (55 page/width combinations measured, no overflow). Verified with typecheck, lint, 68 unit tests, a production build and 14 of 14 smoke checks.
+Delivered in `dbd81ca`: **Y4** rate limiting (sign-in, callback, submission, upload), **Y7** `/api/health`, **Y8** versioned transactional migrations and `pnpm migrate`, **Y9** SEO and sharing kit, **Y10** accessibility pass, **Y11** responsive pass (55 page/width combinations measured, no overflow). Delivered in `5f6daab`: **Y12** in part — uploads are verified by their bytes, and a flaky tampered-token test was corrected. Verified with typecheck, lint, 74 unit tests, a production build and 14 of 14 smoke checks.
+
+`pnpm check-oidc <issuer>` verifies a provider against everything the app needs, and prints the redirect URI to register.
 
 The task lists below are unchanged, so this file still describes the full path to launch. Treat an item as open unless the paragraph above says it is delivered.
 

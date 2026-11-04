@@ -16,6 +16,7 @@
     "lint": "eslint . --max-warnings=0",
     "smoke": "node scripts/smoke.mjs",
     "migrate": "node --experimental-strip-types scripts/migrate.mjs",
+    "check-oidc": "node scripts/check-oidc.mjs",
     "prettier-fix": "prettier --write .",
     "prettier-check": "prettier --check ."
   },
