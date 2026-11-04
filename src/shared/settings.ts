@@ -91,12 +91,12 @@ export const WEEKDAY_LABELS: Record<Weekday, string> = {
 };
 
 export const DEFAULT_SETTINGS: SettingsShape = {
-  // Published institutional enquiry details from hakimerad.com; an
-  // administrator can replace them in Admin -> Settings.
+  // Contact details the clinic asked for; an administrator can replace them
+  // in Admin -> Settings.
   "site.contact": {
     phone: "+251 906 373154",
-    email: "enquiry@hakimerad.com",
-    address: "Remote reporting across Ethiopia — no walk-in address is published.",
+    email: "book@hakimerad.com",
+    address: "6HX48489+6C, Harar, Ethiopia",
     hours: "24/7 platform access, with after-hours and emergency cover.",
     emergencyPhone: "+251 906 373154",
   },

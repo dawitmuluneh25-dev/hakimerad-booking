@@ -11,16 +11,17 @@ type Site = {
     website: string;
     whatsapp: string;
     address: string;
+    maps: string;
     hours: string;
     emergencyPhone: string;
     emergencyNote: string;
   };
 };
 
-// Contact values taken from hakimerad.com (contact page + MedicalBusiness
-// structured data). They are the published institutional enquiry details; the
-// company does not publish a walk-in address. Administrators can override the
-// same values in Admin -> Settings, which is what the server reads.
+// Contact values start from hakimerad.com (contact page + MedicalBusiness
+// structured data) and are then overridden with the details the clinic asked
+// for: the booking mailbox and the published address. Administrators can change
+// the same values in Admin -> Settings, which is what the server reads.
 export const site: Site = {
   name: "HakimeRAD IR Booking",
   organization: "Hakimerad Medical Consultancy",
@@ -34,10 +35,13 @@ export const site: Site = {
   ],
   contact: {
     phone: "+251 906 373154",
-    email: "enquiry@hakimerad.com",
+    email: "book@hakimerad.com",
     website: "https://hakimerad.com",
     whatsapp: "https://wa.me/251906373154",
-    address: "Remote reporting across Ethiopia — no walk-in address is published.",
+    // Full Plus Code: "8489+6C Harar" expanded against Harar's 1-degree cell,
+    // i.e. 9.315563 N, 42.118562 E (same ~14 m cell), globally unique.
+    address: "6HX48489+6C, Harar, Ethiopia",
+    maps: "https://plus.codes/6HX48489+6C",
     hours: "24/7 platform access, with after-hours and emergency cover.",
     emergencyPhone: "+251 906 373154",
     emergencyNote:

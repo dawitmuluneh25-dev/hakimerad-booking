@@ -43,7 +43,12 @@ const ITEMS: ContactItem[] = [
     value: contact.phone,
     href: contact.whatsapp,
   },
-  { icon: MapPinIcon, label: "Where we work", value: contact.address },
+  {
+    icon: MapPinIcon,
+    label: "Where we work",
+    value: contact.address,
+    href: contact.maps,
+  },
   { icon: ClockIcon, label: "Availability", value: contact.hours },
 ];
 

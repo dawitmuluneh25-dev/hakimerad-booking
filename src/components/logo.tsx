@@ -62,7 +62,9 @@ export default function Logo({ className }: { className?: string }) {
           <span className="text-[#0a2540] dark:text-white">Hakim</span>
           <span className="text-[#0077b6] dark:text-[#00b4d8]">eRAD</span>
         </span>
-        <span className="mt-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+        {/* Sized so the rendered tagline matches the wordmark's 102.7px ink
+            width exactly: 7px at 0.1em tracking measures 103.25px. */}
+        <span className="mt-[3px] whitespace-nowrap text-[7px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
           Your Reliable Partner!
         </span>
       </span>
