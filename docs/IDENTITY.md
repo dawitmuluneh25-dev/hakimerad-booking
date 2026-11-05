@@ -82,6 +82,17 @@ It prints the redirect URI to compare against step 3, and fails if PKCE or the c
 
 Auth0 reports its issuer with a trailing slash in the discovery document. Enter the value without one; the app and the checker both treat the two forms as the same issuer.
 
+### Values already decided
+
+| Item                | Value                                                                                                                                                                           |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tenant region       | **Asia** — Auth0's Japan region, so the domain is `<tenant>.jp.auth0.com`. Confirm the exact domain the console shows; `AUTH_ISSUER_URL` must match it character for character. |
+| First administrator | `dawit@hakimerad.com`                                                                                                                                                           |
+
+**Create that account first, and only that one.** The app's `claimFirstAdmin` is first-come, not matched on an email address: whoever signs in while no administrator exists can take the role, and the claim cannot be undone from inside the app. The order is therefore: create Dawit's account → he signs in and claims the card on the dashboard → only then create anyone else's account.
+
+Expect a longer round trip on sign-in from Addis Ababa to Japan than to a European region. It affects the redirect only; after sign-in the session is a sealed cookie and page loads do not touch the provider.
+
 ## Account policy
 
 - **Registration is disabled at the provider.** Every account exists because HakimeRAD created it. There is no public signup endpoint to abuse and every account is deliberate.
