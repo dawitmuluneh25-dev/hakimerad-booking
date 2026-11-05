@@ -1,0 +1,60 @@
+# systemd unit for the HakimeRAD booking app on the Hostinger Linux VPS.
+#
+#   sudo install -m 0644 deploy/hakimerad.service /etc/systemd/system/hakimerad.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now hakimerad
+#   journalctl -u hakimerad -f
+#
+# One instance only. SQLite allows a single writer, and the rate limiter counts in
+# memory: two processes would mean two writers and two independent budgets.
+
+[Unit]
+Description=HakimeRAD IR booking
+Documentation=file:///var/www/hakimerad/docs/DEPLOYMENT.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=hakimerad
+Group=hakimerad
+WorkingDirectory=/var/www/hakimerad
+
+# The app reads these; the file must be 0600 and owned by the service user.
+EnvironmentFile=/etc/hakimerad/env
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=HOST=127.0.0.1
+
+# Bind to loopback only: nginx terminates TLS and is the only way in.
+#
+# INTERIM: this is the same server `vite preview` uses, which is not a hardened
+# production server. It is the current build's entry point; Y20 in the roadmap
+# replaces it with a `pnpm start` entry of our own. Do not ship a public launch
+# on this line without deciding that risk explicitly.
+ExecStartPre=/usr/bin/pnpm migrate
+ExecStart=/usr/bin/pnpm preview --host 127.0.0.1 --port 3000 --strictPort
+Restart=always
+RestartSec=3
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+# Hardening. The app needs to write only its data directory.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/hakimerad
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryDenyWriteExecute=false
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=hakimerad
+
+[Install]
+WantedBy=multi-user.target
