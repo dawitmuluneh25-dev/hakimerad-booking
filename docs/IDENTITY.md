@@ -41,6 +41,47 @@ AUTH_COOKIE_SECRET=<32+ random characters>          # openssl rand -base64 48
 
 A trailing slash, a different port or `http` where the provider expects `https` all produce a redirect-URI mismatch at the provider, not in the app.
 
+## Auth0 setup
+
+The confirmed provider. This is the whole console walk-through; nothing in the application changes.
+
+**1. Create the tenant.** Pick the **region** deliberately — it sets the permanent domain `<tenant>.<region>.auth0.com` and decides where staff identity data is stored (EU, US, AU, JP). It cannot be changed later without recreating the tenant. Confirm the current free-tier user limit before committing.
+
+**2. Create the application.** Applications → Create Application → name it `HakimeRAD IR Booking` → type **Regular Web Application**. That type is a confidential client: it issues a client secret and uses the authorization code flow, which is what the app expects. Note the **Domain**, **Client ID** and **Client Secret** from its Settings tab.
+
+**3. Register the redirect URIs.** On the same Settings tab, fill **Allowed Callback URLs** with exactly:
+
+```
+https://<production-host>/auth/callback
+https://<staging-host>/auth/callback
+http://localhost:5173/auth/callback
+```
+
+Set **Allowed Logout URLs** to the matching origins, and **Allowed Web Origins** to the production and staging origins. A missing or mistyped entry here is the most common launch failure: the provider rejects the redirect before the app ever sees a request.
+
+**4. Disable sign-up.** Authentication → Database → the `Username-Password-Authentication` connection → turn **Disable Sign Ups** on. If more than one database connection is enabled for the application, disable sign-ups on **every** one — with a single connection left open, the sign-up link still appears on the login page.
+
+**5. Create the accounts.** User Management → Users → Create User, one per person, with a work email address and a password the user changes at first sign-in. Mark the address verified. Do not invite people to self-serve.
+
+**6. Point the app at it.**
+
+```ini
+AUTH_ISSUER_URL=https://<tenant>.<region>.auth0.com
+AUTH_CLIENT_ID=<Client ID>
+AUTH_CLIENT_SECRET=<Client Secret>
+AUTH_REDIRECT_URI=https://<production-host>/auth/callback
+```
+
+**7. Verify before launch.**
+
+```bash
+pnpm check-oidc https://<tenant>.<region>.auth0.com
+```
+
+It prints the redirect URI to compare against step 3, and fails if PKCE or the code flow is unavailable.
+
+Auth0 reports its issuer with a trailing slash in the discovery document. Enter the value without one; the app and the checker both treat the two forms as the same issuer.
+
 ## Account policy
 
 - **Registration is disabled at the provider.** Every account exists because HakimeRAD created it. There is no public signup endpoint to abuse and every account is deliberate.

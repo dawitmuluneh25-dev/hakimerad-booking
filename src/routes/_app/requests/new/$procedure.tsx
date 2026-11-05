@@ -17,7 +17,10 @@ export const Route = createFileRoute("/_app/requests/new/$procedure")({
     meta: [{ title: `New request: ${loaderData?.title ?? "Procedure"} | HakimeRAD IR Booking` }],
   }),
   component: () => (
-    <RequireRole roles={["patient", "physician"]} message="Requests are submitted by patients, guardians and verified physicians.">
+    <RequireRole
+      roles={["physician"]}
+      message="Requests are submitted by verified referring physicians. If your account should be able to refer, ask the booking team to check your role."
+    >
       <NewRequestPage />
     </RequireRole>
   ),

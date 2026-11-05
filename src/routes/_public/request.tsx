@@ -28,16 +28,33 @@ function RequestPage() {
     >
       <div className="grid gap-5 md:grid-cols-2">
         {elective.map((p) => (
-          <div key={p.slug} className="flex flex-col gap-3 rounded-xl border bg-card p-6">
+          <div
+            key={p.slug}
+            className="flex flex-col gap-3 rounded-xl border bg-card p-6"
+          >
             <p.icon className="size-6 text-primary" />
             <h2 className="text-lg font-semibold">{p.name}</h2>
             <p className="flex-1 text-sm text-muted-foreground">{p.summary}</p>
             <div className="flex flex-wrap gap-2 pt-2">
-              <Button render={<Link to="/requests/new/$procedure" params={{ procedure: p.slug }} />} nativeButton={false}>
+              <Button
+                render={
+                  <Link
+                    to="/requests/new/$procedure"
+                    params={{ procedure: p.slug }}
+                  />
+                }
+                nativeButton={false}
+              >
                 Start request
                 <ArrowRightIcon />
               </Button>
-              <Button variant="ghost" render={<Link to="/procedures/$slug" params={{ slug: p.slug }} />} nativeButton={false}>
+              <Button
+                variant="ghost"
+                render={
+                  <Link to="/procedures/$slug" params={{ slug: p.slug }} />
+                }
+                nativeButton={false}
+              >
                 Details
               </Button>
             </div>
@@ -45,7 +62,11 @@ function RequestPage() {
         ))}
       </div>
       <p className="pt-4 text-sm text-muted-foreground">
-        You will be asked to sign in or create an account first so you can track your request. Referring doctors need a verified profile.
+        Referrals are submitted by referring institutions and physicians, who
+        sign in with the account HakimeRAD issues them. Accounts are not
+        self-service: contact the booking team if you refer patients to us and
+        need one. If you are a patient, your referring doctor sends the request
+        and we keep you updated by phone and email.
       </p>
       {urgent ? (
         <div className="space-y-4 pt-10">
