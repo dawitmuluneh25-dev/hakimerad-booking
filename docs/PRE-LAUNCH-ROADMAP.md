@@ -8,7 +8,7 @@ Public launch of the HakimeRAD IR Booking site.
 
 ## Status at 2026-11-05
 
-Decisions recorded (final): **B1** — a managed OpenID Connect provider, not a self-hosted Keycloak; referrals restricted to referring institutions and physicians; accounts issued by the clinic with roles held in the application. See `docs/IDENTITY.md`. **B2** — cross-platform: this Windows machine and a Linux VPS, the VPS being the Hostinger one. Which of the two is authoritative production is still open. **B3** — Yegara, now expected to be DNS and email only, because a managed provider removes the need to run Keycloak there; to be confirmed.
+Decisions recorded (final): **B1** — a managed OpenID Connect provider, not a self-hosted Keycloak; referrals restricted to referring institutions and physicians; accounts issued by the clinic with roles held in the application. See `docs/IDENTITY.md`. **B2** — cross-platform: the Hostinger Linux VPS is authoritative production and this Windows machine is staging. **B3** — Yegara is DNS and email only, confirmed, because a managed provider removes the need to run Keycloak there.
 
 Delivered in `dbd81ca`: **Y4** rate limiting (sign-in, callback, submission, upload), **Y7** `/api/health`, **Y8** versioned transactional migrations and `pnpm migrate`, **Y9** SEO and sharing kit, **Y10** accessibility pass, **Y11** responsive pass (55 page/width combinations measured, no overflow). Delivered in `5f6daab`: **Y12** in part — uploads are verified by their bytes, and a flaky tampered-token test was corrected. Verified with typecheck, lint, 74 unit tests, a production build and 14 of 14 smoke checks.
 
